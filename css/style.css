@@ -1572,6 +1572,24 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
   text-align: center;
 }
 
+.cia-input {
+  width: 2.6rem;
+  height: 1.75rem;
+  border: 1px solid rgba(20, 32, 28, 0.18);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.cia-input:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
 .cat {
   display: inline-block;
   padding: 0.2rem 0.5rem;

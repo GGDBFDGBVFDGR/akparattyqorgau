@@ -521,6 +521,80 @@ function lab2Category(asset) {
   return { key: "low", label: "Төмен", sum };
 }
 
+function lab2CiaControl(asset, key) {
+  const names = { c: "Құпиялылық", i: "Тұтастық", a: "Қолжетімділік" };
+  const options = [1, 2, 3]
+    .map((n) => `<option value="${n}"${n === asset[key] ? " selected" : ""}>${n}</option>`)
+    .join("");
+  return `<select class="cia-input" data-cia="${key}" aria-label="${names[key]}">${options}</select>`;
+}
+
+function lab2PaintCia(asset) {
+  const cat = lab2Category(asset);
+  const row = document.querySelector(`.asset-row[data-id="${asset.id}"]`);
+  if (row) {
+    row.dataset.cat = cat.key;
+    const sum = row.querySelector(".cia-sum");
+    if (sum) sum.textContent = String(cat.sum);
+    const badge = row.querySelector(".cat");
+    if (badge) {
+      badge.className = `cat cat-${cat.key}`;
+      badge.textContent = cat.label;
+    }
+    const active = document.querySelector("#asset-filters .chip.is-on")?.dataset.filter;
+    if (active) {
+      const show = active === "all" || row.dataset.type === active || row.dataset.cat === active;
+      row.hidden = !show;
+      const detail = document.querySelector(`[data-detail="${asset.id}"]`);
+      if (!show && detail) {
+        detail.hidden = true;
+        row.classList.remove("is-open");
+      }
+    }
+  }
+
+  const node = document.querySelector(`.d-node[data-id="${asset.id}"]`);
+  if (node) node.dataset.cat = cat.key;
+
+  const title = document.getElementById("dep-title");
+  const text = document.getElementById("dep-text");
+  if (title?.dataset.asset === asset.id && text) {
+    text.textContent = text.textContent.replace(
+      /· [^·]*\(\d\/\d\/\d = \d+\)/,
+      `· ${cat.label} (${asset.c}/${asset.i}/${asset.a} = ${cat.sum})`
+    );
+  }
+
+  const stats = lab2Stats();
+  const highEl = document.getElementById("stat-high");
+  if (highEl) highEl.textContent = String(stats.high);
+  const summary = document.getElementById("registry-summary");
+  if (summary) {
+    summary.textContent = `${stats.total} актив: ${stats.high} жоғары, ${stats.medium} орташа, ${stats.low} төмен. C, I және A мәнін 1–3 аралығында өзгертуге болады. Жолды ашсаңыз, пайдаланушы, орналасу және қорғау талабы шығады.`;
+  }
+
+  const grid = document.querySelector(".lab2 .protect-grid");
+  if (grid) {
+    grid.innerHTML = LAB2.assets
+      .filter((item) => lab2Category(item).key === "high")
+      .map((item) => {
+        const itemCat = lab2Category(item);
+        const lines = item.protect || [
+          "Базалық қорғау: рөлдік қолжетімділік және өзгеріс журналы.",
+        ];
+        return `
+          <article class="protect-card">
+            <header>
+              <h3>${item.name}</h3>
+              <span class="cat cat-high">${itemCat.sum} · ${itemCat.label}</span>
+            </header>
+            <ul class="protect-list">${lines.map((line) => `<li>${line}</li>`).join("")}</ul>
+          </article>`;
+      })
+      .join("");
+  }
+}
+
 function lab2AssetById(id) {
   return LAB2.assets.find((a) => a.id === id);
 }
@@ -610,10 +684,10 @@ function viewLab2() {
           </td>
           <td>${lab2TypeLabel(asset.type)}</td>
           <td>${asset.owner}</td>
-          <td class="num">${asset.c}</td>
-          <td class="num">${asset.i}</td>
-          <td class="num">${asset.a}</td>
-          <td class="num">${cat.sum}</td>
+          <td class="num">${lab2CiaControl(asset, "c")}</td>
+          <td class="num">${lab2CiaControl(asset, "i")}</td>
+          <td class="num">${lab2CiaControl(asset, "a")}</td>
+          <td class="num cia-sum">${cat.sum}</td>
           <td><span class="cat cat-${cat.key}">${cat.label}</span></td>
         </tr>
         <tr class="asset-detail" data-detail="${asset.id}" hidden>
@@ -736,7 +810,7 @@ function viewLab2() {
         </div>
         <div class="stat-stack reveal" aria-label="Тізілім жиынтығы">
           <div><strong>${stats.total}</strong><span>актив</span></div>
-          <div><strong>${stats.high}</strong><span>жоғары санат</span></div>
+          <div><strong id="stat-high">${stats.high}</strong><span>жоғары санат</span></div>
           <div><strong>${LAB2.types.length}</strong><span>актив түрі</span></div>
         </div>
       </section>
@@ -781,7 +855,7 @@ function viewLab2() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 3</p>
           <h2>Активтер тізілімі</h2>
-          <p>${stats.total} актив: ${stats.high} жоғары, ${stats.medium} орташа, ${stats.low} төмен. Жолды ашсаңыз, пайдаланушы, орналасу және қорғау талабы шығады.</p>
+          <p id="registry-summary">${stats.total} актив: ${stats.high} жоғары, ${stats.medium} орташа, ${stats.low} төмен. C, I және A мәнін 1–3 аралығында өзгертуге болады. Жолды ашсаңыз, пайдаланушы, орналасу және қорғау талабы шығады.</p>
         </div>
         <div class="type-row reveal">${typeCards}</div>
         <div class="chip-row reveal" id="asset-filters">${filters}</div>
@@ -1186,6 +1260,26 @@ function bindLab2() {
     });
   });
 
+  const table = document.querySelector(".lab2 .reg-table");
+  table?.addEventListener(
+    "click",
+    (event) => {
+      if (event.target.closest(".cia-input")) event.stopPropagation();
+    },
+    true
+  );
+  table?.addEventListener("change", (event) => {
+    const input = event.target.closest(".cia-input");
+    if (!input) return;
+    const row = input.closest(".asset-row");
+    const asset = row && lab2AssetById(row.dataset.id);
+    const key = input.dataset.cia;
+    const value = Number(input.value);
+    if (!asset || !["c", "i", "a"].includes(key) || value < 1 || value > 3) return;
+    asset[key] = value;
+    lab2PaintCia(asset);
+  });
+
   document.querySelectorAll(".asset-row").forEach((row) => {
     row.addEventListener("click", () => {
       const detail = document.querySelector(`[data-detail="${row.dataset.id}"]`);
@@ -1221,6 +1315,7 @@ function bindLab2() {
       });
     }
 
+    panelTitle.dataset.asset = id;
     panelTitle.textContent = asset.name;
     const routeLabel = route ? lab2RouteText(id, route.chosen) : "";
     const withWifi = asset.deps?.includes("wifi")
