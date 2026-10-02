@@ -78,7 +78,7 @@ const LAB3 = {
     {
       id: "DF1",
       name: "Порталға кіру",
-      nodes: ["student", "teachers", "staff", "outsider", "portal"],
+      nodes: ["students", "teachers", "staff", "iam", "portal"],
       text: "№2 тізілімдегі студенттер, оқытушылар және әкімшілік порталға кіреді. Сыртқы бұзушы да осы есікке дейін ғана жетеді.",
     },
     {
@@ -102,7 +102,7 @@ const LAB3 = {
     {
       id: "DF5",
       name: "Қойма",
-      nodes: ["dbms", "store"],
+      nodes: ["dbms", "student-db"],
       text: "ДҚБЖ студенттердің жеке дерек қоймасын оқиды және жазады. Құпиялылық пен тұтастық осында шешіледі.",
     },
     {
@@ -114,7 +114,7 @@ const LAB3 = {
     {
       id: "DF8",
       name: "LMS нәтижесі",
-      nodes: ["portal", "lms", "student", "teachers"],
+      nodes: ["portal", "lms-grades", "students", "teachers"],
       text: "Студенттер мен оқытушылар порталдан LMS-ке өтеді. Олар студенттер дерекқорына кірмейді.",
     },
     {
@@ -123,11 +123,32 @@ const LAB3 = {
       nodes: ["sysadmin", "dbms"],
       text: "№2 тізілімдегі жүйе әкімшісі порталды айналып, ДҚБЖ-ға жетеді. Мердігердің уақытша арнасы осы жолмен өтеді.",
     },
+    {
+      id: "DF9",
+      name: "Өткізу жүйесі",
+      nodes: ["guards", "acs"],
+      text: "Күзет ACS-ке кіреді. Студенттер дерекқоры мен порталға бармайды.",
+    },
+    {
+      id: "DF10",
+      name: "Қонақ желісі",
+      nodes: ["guests", "wifi"],
+      text: "Қонақтар тек Wi-Fi-ға шығады. Порталға кірмейді.",
+    },
+    {
+      id: "DF11",
+      name: "Офицер",
+      nodes: ["officer", "portal"],
+      text: "Ақпараттық қауіпсіздік офицері порталға кіреді. Қоймаға тікелей жолы жоқ.",
+    },
   ],
   nodes: {
     student: { title: "Студенттер", text: "№2 тізілім. Порталдан LMS-ке өтеді, студенттер дерекқорына кірмейді." },
     teachers: { title: "Оқытушылар", text: "№2 тізілім. Порталдан LMS-ке өтеді, қоймаға кірмейді." },
     staff: { title: "Әкімшілік", text: "№2 тізілім. Порталда тоқтайды, студенттер дерекқорына кірмейді." },
+    guards: { title: "Күзет", text: "№2 тізілім. ACS-ке кіреді, портал мен студенттер дерекқорына бармайды." },
+    officer: { title: "АҚ офицері", text: "№2 тізілім. Порталға кіреді, қоймаға тікелей жолы жоқ." },
+    guests: { title: "Қонақтар", text: "№2 тізілім. Тек Wi-Fi. Порталға кірмейді." },
     outsider: { title: "Сыртқы бұзушы", text: "Шекарадан тыс. Порталға дейін ғана жетеді, қоймаға тікелей жолы жоқ." },
     registrar: { title: "Тіркеуші", text: "№2 тізілім. Студенттер дерекқорына кіретін рөл. Өзгеріс бекітіліп, журналдалады." },
     sysadmin: { title: "Жүйе әкімшісі", text: "№2 тізілім. ДҚБЖ мен резервке жетеді. Мердігердің уақытша арнасы осы жолмен өтеді." },
@@ -135,6 +156,8 @@ const LAB3 = {
     iam: { title: "IAM", text: "№2 тізілімдегі сәйкестендіру. Портал кім екенін осы қызметтен сұрайды." },
     lms: { title: "LMS нәтижесі", text: "№2 тізілім. Студент пен оқытушының жолы осында бітеді." },
     dbms: { title: "ДҚБЖ", text: "№2 тізілім. Тіркеушінің сұрауын қойма мен резервке жеткізеді." },
+    acs: { title: "ACS", text: "№2 тізілім. Күзеттің өткізу жүйесі. Студенттер дерекқоры емес." },
+    wifi: { title: "Wi-Fi", text: "№2 тізілім. Қонақтардың жалғыз кіруі. Порталдан бөлек." },
     store: { title: "Студенттер ДҚ", text: "№2 тізілімдегі қорғалатын актив. ЖСН, аты-жөні, байланыс, оқу мәртебесі." },
     backup: { title: "Резерв", text: "№2 тізілімдегі көшірме. Шифрланбаса, сол құпиялылық тәуекелі қайталанады." },
   },
@@ -671,7 +694,7 @@ function viewLab3() {
         </div>
         <article class="goal-card reveal">
           <h3>${lab2AssetById("student-db").name}</h3>
-          <p>№2 тізілімнен алынған жоғары актив. Құпиялылық ${lab2AssetById("student-db").c}, тұтастық ${lab2AssetById("student-db").i}, қолжетімділік ${lab2AssetById("student-db").a}, жиынтық ${lab2Category(lab2AssetById("student-db")).sum}. Иесі — ${lab2AssetById("student-db").owner}. ${lab2AssetById("student-db").info}. Субъектілер де №2-ден: студенттер мен оқытушылар порталдан LMS-ке өтеді, әкімшілік порталда тоқтайды, тіркеуші қоймаға кіреді, жүйе әкімшісі ДҚБЖ мен резервке жетеді.</p>
+          <p>№2 тізілімнен алынған жоғары актив. Құпиялылық ${lab2AssetById("student-db").c}, тұтастық ${lab2AssetById("student-db").i}, қолжетімділік ${lab2AssetById("student-db").a}, жиынтық ${lab2Category(lab2AssetById("student-db")).sum}. Иесі — ${lab2AssetById("student-db").owner}. ${lab2AssetById("student-db").info}. Субъектілердің бәрі №2-ден: студенттер мен оқытушылар LMS-ке, әкімшілік пен офицер порталға, тіркеуші қоймаға, жүйе әкімшісі ДҚБЖ-ға, күзет ACS-ке, қонақтар тек Wi-Fi-ға барады.</p>
           <p class="meta"><span>Тізілім</span><a href="#lab/2/registry">№2 активтер тізілімі</a></p>
         </article>
         <div class="process-grid">${["portal", "iam", "lms-grades", "dbms", "backup"]
@@ -689,7 +712,7 @@ function viewLab3() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 3</p>
           <h2>Контекстік сызба</h2>
-          <p>Субъектілер мен жүйелер №2 тізілімнен. Студент, оқытушы және әкімшілік дерекқорға кірмейді. Қоймаға тіркеуші кіреді. Ағынды бассаңыз, сол шекарадағы қауіптер тізілімде ерекшеленеді.</p>
+          <p>Бұл №2 тәуелділік сызбасының жалғасы: сызықтар сол ретпен жүреді. Адам → IAM → портал немесе ACS, содан кейін дерек пен желі. Сызықты бассаңыз, сол ағындағы қауіптер ашылады.</p>
         </div>
         <div class="diagram-layout">
           <div class="dep-wrap reveal">${lab3DfdSvg()}</div>
@@ -781,133 +804,116 @@ function viewLab3() {
 }
 
 function lab3DfdSvg() {
-  const nodes = [
-    { id: "student", x: 200, y: 16, w: 156, h: 50, title: "Студенттер", sub: "портал, LMS", kind: "ext" },
-    { id: "teachers", x: 368, y: 16, w: 156, h: 50, title: "Оқытушылар", sub: "портал, LMS", kind: "ext" },
-    { id: "staff", x: 536, y: 16, w: 156, h: 50, title: "Әкімшілік", sub: "портал", kind: "ext" },
-    { id: "registrar", x: 704, y: 16, w: 156, h: 50, title: "Тіркеуші", sub: "дерекқор", kind: "ext" },
-    { id: "outsider", x: 12, y: 188, w: 148, h: 52, title: "Бұзушы", sub: "сыртқы", kind: "ext" },
-    { id: "sysadmin", x: 980, y: 320, w: 168, h: 52, title: "Жүйе әкімшісі", sub: "ДҚБЖ, резерв", kind: "ext" },
-    { id: "portal", x: 250, y: 188, w: 210, h: 52, title: "Портал", sub: "қолданбалық есік", kind: "proc" },
-    { id: "iam", x: 530, y: 188, w: 180, h: 52, title: "IAM", sub: "сәйкестендіру", kind: "proc" },
-    { id: "lms", x: 250, y: 320, w: 210, h: 52, title: "LMS нәтижесі", sub: "баға, қатысу", kind: "proc" },
-    { id: "dbms", x: 530, y: 320, w: 210, h: 52, title: "ДҚБЖ", sub: "сұраулар", kind: "proc" },
-    { id: "store", x: 250, y: 460, w: 210, h: 68, title: "Студенттер ДҚ", sub: "жеке дерек", kind: "store" },
-    { id: "backup", x: 530, y: 468, w: 210, h: 52, title: "Резерв", sub: "көшірме", kind: "proc" },
-  ];
+  const layout = lab2DiagramLayout();
+  const byId = Object.fromEntries(layout.nodes.map((node) => [node.id, node]));
+  const flowByEdge = {
+    "students|iam": "DF1",
+    "teachers|iam": "DF1",
+    "staff|iam": "DF1",
+    "registrar|iam": "DF2",
+    "officer|iam": "DF11",
+    "guards|iam": "DF9",
+    "sysadmin|iam": "DF7",
+    "iam|portal": "DF1 DF2 DF3 DF8 DF11",
+    "iam|acs": "DF9",
+    "portal|lms-grades": "DF8",
+    "portal|student-db": "DF2 DF5",
+    "portal|dbms": "DF4 DF7",
+    "dbms|lms-grades": "",
+    "lms-grades|backup": "DF6",
+    "acs|access-logs": "DF9",
+    "access-logs|servers": "DF9",
+    "servers|wifi": "DF9",
+    "wifi|cctv": "DF9",
+    "student-db|wifi": "DF5",
+  };
 
-  const flows = [
-    {
-      id: "DF1",
-      nodes: ["student", "teachers", "staff", "outsider", "portal"],
-      paths: [
-        "M 278 66 L 278 100 L 355 100 L 355 188",
-        "M 446 66 L 446 100 L 355 100 L 355 188",
-        "M 614 66 L 614 100 L 355 100 L 355 188",
-        "M 160 214 L 250 214",
-      ],
-      labels: [
-        { x: 300, y: 92, text: "DF1" },
-        { x: 190, y: 206, text: "DF1" },
-      ],
-    },
-    {
-      id: "DF2",
-      nodes: ["registrar", "portal"],
-      paths: ["M 782 66 L 782 118 L 430 118 L 430 188"],
-      labels: [{ x: 600, y: 110, text: "DF2" }],
-    },
-    {
-      id: "DF3",
-      nodes: ["portal", "iam"],
-      paths: ["M 460 214 L 530 214"],
-      labels: [{ x: 478, y: 206, text: "DF3" }],
-    },
-    {
-      id: "DF8",
-      nodes: ["portal", "lms", "student", "teachers"],
-      paths: ["M 320 240 L 320 320"],
-      labels: [{ x: 332, y: 286, text: "DF8" }],
-    },
-    {
-      id: "DF4",
-      nodes: ["portal", "dbms"],
-      paths: ["M 420 240 L 420 286 L 635 286 L 635 320"],
-      labels: [{ x: 520, y: 278, text: "DF4" }],
-    },
-    {
-      id: "DF5",
-      nodes: ["dbms", "store"],
-      paths: ["M 635 372 L 635 420 L 355 420 L 355 460"],
-      labels: [{ x: 500, y: 412, text: "DF5" }],
-    },
-    {
-      id: "DF6",
-      nodes: ["dbms", "backup"],
-      paths: ["M 700 372 L 700 468"],
-      labels: [{ x: 712, y: 420, text: "DF6" }],
-    },
-    {
-      id: "DF7",
-      nodes: ["sysadmin", "dbms"],
-      paths: ["M 980 346 L 740 346"],
-      labels: [{ x: 850, y: 338, text: "DF7" }],
-    },
-  ];
+  const markup = (d, from, to, flows, kind) => {
+    const use = kind === "use" ? " d-use" : "";
+    const attrs = `data-from="${from}" data-to="${to}" data-flow="${flows.split(" ")[0] || ""}" data-flows="${flows}" data-nodes="${from} ${to}"`;
+    const hit = flows ? `<path class="d-hit dfd-flow" ${attrs} d="${d}" tabindex="0" role="button"><title>${flows}</title></path>` : "";
+    const visible = kind === "wifi"
+      ? `<path class="d-wifi${flows ? " dfd-flow" : ""}" ${attrs} d="${d}" />`
+      : `<path class="d-edge${use}${flows ? " dfd-flow" : ""}" ${attrs} d="${d}" />`;
+    return visible + hit;
+  };
 
-  const boxes = nodes
-    .map((node) => {
-      const cx = node.kind === "store" ? node.x + 16 + (node.w - 16) / 2 : node.x + node.w / 2;
-      const bar =
-        node.kind === "store"
-          ? `<line class="store-bar" x1="${node.x + 16}" y1="${node.y + 8}" x2="${node.x + 16}" y2="${node.y + node.h - 8}" />`
-          : "";
-      return `
-        <g class="dfd-node" data-id="${node.id}" data-kind="${node.kind}" tabindex="0" role="button">
-          <title>${node.title}</title>
-          <rect x="${node.x}" y="${node.y}" width="${node.w}" height="${node.h}" rx="${node.kind === "store" ? 8 : 12}" />
-          ${bar}
-          <text class="dfd-title" x="${cx}" y="${node.y + 23}">${node.title}</text>
-          <text class="dfd-sub" x="${cx}" y="${node.y + 41}">${node.sub}</text>
-        </g>`;
+  const edges = LAB2.diagram.edges
+    .map(([from, to, kind]) => {
+      const a = byId[from];
+      const b = byId[to];
+      if (!a || !b) return "";
+      return markup(lab2EdgePath(a, b, layout.nodes, layout.stepY), from, to, flowByEdge[`${from}|${to}`] || "", kind);
     })
     .join("");
 
-  const lines = flows
-    .map((flow) => {
-      const paths = flow.paths
-        .map(
-          (d) => `
-          <path class="dfd-hit" d="${d}" />
-          <path class="dfd-line" marker-end="url(#dfd-arrow)" d="${d}" />`
-        )
-        .join("");
-      const labels = flow.labels
-        .map((label) => `<text class="dfd-tag" x="${label.x}" y="${label.y}">${label.text}</text>`)
-        .join("");
-      return `<g class="dfd-flow" data-flow="${flow.id}" data-nodes="${flow.nodes.join(" ")}" tabindex="0" role="button">${paths}${labels}</g>`;
+  const people = LAB2.assets
+    .filter((asset) => asset.type === "human" && asset.deps?.includes("wifi"))
+    .map((asset) => byId[asset.id])
+    .filter(Boolean);
+  const wifi = byId.wifi;
+  const busY = people[0].y + people[0].h + 18;
+  const rail = byId.guests.x + byId.guests.w + 28;
+  const approach = byId["access-logs"].y + byId["access-logs"].h + 16;
+  const wifiX = wifi.x + wifi.w / 2;
+  const wifiPaths = people
+    .map((person) => {
+      const x = person.x + person.w / 2 + (person.id === "guests" ? 0 : 10);
+      const d = `M ${x} ${person.y + person.h} L ${x} ${busY} L ${rail} ${busY} L ${rail} ${approach} L ${wifiX} ${approach} L ${wifiX} ${wifi.y}`;
+      return markup(d, person.id, "wifi", person.id === "guests" ? "DF10" : "", "wifi");
+    })
+    .join("");
+
+  const systems = layout.nodes.filter((node) => lab2AssetById(node.id)?.type !== "human");
+  const minX = Math.min(...systems.map((node) => node.x)) - 36;
+  const minY = Math.min(...systems.map((node) => node.y)) - 28;
+  const maxX = Math.max(...systems.map((node) => node.x + node.w)) + 36;
+  const maxY = Math.max(...systems.map((node) => node.y + node.h)) + 18;
+
+  const labels = layout.labels
+    .map((label) => `<text class="d-label" x="12" y="${label.y}">${label.text}</text>`)
+    .join("");
+
+  const nodes = layout.nodes
+    .map((node) => {
+      const asset = lab2AssetById(node.id);
+      const cat = asset ? lab2Category(asset).key : "low";
+      const label = LAB2_SHORT[node.id] || node.id;
+      const cx = node.x + node.w / 2;
+      const text = node.sub
+        ? `<text class="d-node-title" x="${cx}" y="${node.y + 22}">${label}</text><text class="d-node-sub" x="${cx}" y="${node.y + 40}">${node.sub}</text>`
+        : `<text x="${cx}" y="${node.y + node.h / 2}">${label}</text>`;
+      return `<g class="d-node dfd-node" data-id="${node.id}" data-cat="${cat}" tabindex="0" role="button"><title>${asset ? asset.name : label}</title><rect x="${node.x}" y="${node.y}" width="${node.w}" height="${node.h}" rx="12" />${text}</g>`;
     })
     .join("");
 
   return `
     <div class="dep-figure">
-      <svg class="dfd-svg" viewBox="0 0 1180 640" role="img" aria-label="№2 тізілімдегі активтердің контекстік сызбасы">
+      <svg class="dep-svg" viewBox="0 0 ${layout.railBase + 28} ${layout.height}" role="img" aria-label="№2 тәуелділік сызбасының жалғасы">
         <defs>
-          <marker id="dfd-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-            <path d="M 0 0 L 8 4 L 0 8 Z" fill="#8a3b12" />
+          <marker id="dep-arrow" viewBox="0 0 10 10" markerWidth="14" markerHeight="14" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M 0 1 L 10 5 L 0 9 Z" fill="#0d5c4b" />
+          </marker>
+          <marker id="dep-arrow-use" viewBox="0 0 10 10" markerWidth="14" markerHeight="14" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M 0 1 L 10 5 L 0 9 Z" fill="#8a3b12" />
+          </marker>
+          <marker id="dep-arrow-wifi" viewBox="0 0 10 10" markerWidth="14" markerHeight="14" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M 0 1 L 10 5 L 0 9 Z" fill="#1a4f6e" />
           </marker>
         </defs>
-        <rect class="dfd-boundary" x="210" y="150" width="720" height="420" rx="18" />
-        <text class="dfd-boundary-label" x="228" y="174">Сенім шекарасы</text>
-        ${boxes}
-        ${lines}
+        <rect class="dfd-boundary" x="${minX}" y="${minY}" width="${maxX - minX}" height="${maxY - minY}" rx="18" />
+        <text class="dfd-boundary-label" x="${minX + 16}" y="${minY + 16}">Сенім шекарасы</text>
+        ${labels}
+        ${edges}
+        ${wifiPaths}
+        ${nodes}
       </svg>
       <div class="dep-legend">
-        <span><i class="bound-swatch"></i>Шекара</span>
-        <span><i class="ext-swatch"></i>Субъект</span>
-        <span><i class="proc-swatch"></i>Процесс</span>
-        <span><i class="store-swatch"></i>Қойма</span>
-        <span><i class="flow-swatch"></i>Дерек ағыны</span>
+        <span><i class="dot dot-high"></i>Жоғары</span>
+        <span><i class="dot dot-medium"></i>Орташа</span>
+        <span><i class="dot dot-low"></i>Төмен</span>
+        <span><i class="dash"></i>Пайдаланушы → IAM</span>
+        <span><i class="wifi-line"></i>Бөлек Wi-Fi</span>
       </div>
     </div>`;
 }
@@ -950,14 +956,14 @@ function bindLab3() {
 
   function clearFocus() {
     focus = null;
-    document.querySelector(".dfd-svg")?.classList.remove("is-active");
-    document.querySelectorAll(".dfd-flow, .dfd-node, .threat-row").forEach((node) => {
+    document.querySelector(".dep-svg")?.classList.remove("is-active");
+    document.querySelectorAll(".dfd-flow, .d-node, .threat-row").forEach((node) => {
       node.classList.remove("is-on", "is-dim", "is-hit");
     });
     if (panelTitle) panelTitle.textContent = "Ағынды таңдаңыз";
     if (panelText) {
       panelText.textContent =
-        "DF1 — порталға кіру. DF8 — LMS. DF7 — жүйе әкімшісінің арнасы. Шекараны кесіп өткен әр сызық жеке тексеріледі.";
+        "Сызықтар №2 тәуелділік ретімен жүреді: адам → IAM → портал немесе ACS. Сызықты бассаңыз, сол ағынның қаупі ашылады.";
     }
   }
 
@@ -965,16 +971,17 @@ function bindLab3() {
     const ids = new Set(flowIds);
     const nodeIds = new Set();
     document.querySelectorAll(".dfd-flow").forEach((flow) => {
-      const on = ids.has(flow.dataset.flow);
+      const names = (flow.dataset.flows || "").split(" ").filter(Boolean);
+      const on = names.some((id) => ids.has(id));
       flow.classList.toggle("is-on", on);
       if (on) flow.dataset.nodes.split(" ").forEach((id) => nodeIds.add(id));
     });
-    document.querySelectorAll(".dfd-node").forEach((node) => {
+    document.querySelectorAll(".d-node").forEach((node) => {
       const on = nodeIds.has(node.dataset.id);
       node.classList.toggle("is-on", on);
       node.classList.toggle("is-dim", !on);
     });
-    document.querySelector(".dfd-svg")?.classList.add("is-active");
+    document.querySelector(".dep-svg")?.classList.add("is-active");
     document.querySelectorAll(".threat-row").forEach((row) => {
       const on = row.dataset.flows.split(" ").some((id) => ids.has(id));
       row.classList.toggle("is-hit", on);
@@ -1001,7 +1008,12 @@ function bindLab3() {
       clearFocus();
       return;
     }
-    const node = LAB3.nodes[id];
+    const aliases = { students: "student", "lms-grades": "lms", "student-db": "store" };
+    const asset = lab2AssetById(id);
+    const node =
+      LAB3.nodes[id] ||
+      LAB3.nodes[aliases[id]] ||
+      (asset ? { title: LAB2_SHORT[id] || asset.name, text: asset.info } : null);
     if (!node) return;
     const flowIds = LAB3.flows.filter((flow) => flow.nodes.includes(id)).map((flow) => flow.id);
     focus = { kind: "node", id };
@@ -1025,7 +1037,7 @@ function bindLab3() {
     if (scroll && open) row.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  document.querySelectorAll(".dfd-flow").forEach((flow) => {
+  document.querySelectorAll(".d-hit").forEach((flow) => {
     flow.addEventListener("click", () => showFlow(flow.dataset.flow, true));
     flow.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -1035,7 +1047,7 @@ function bindLab3() {
     });
   });
 
-  document.querySelectorAll(".dfd-node").forEach((node) => {
+  document.querySelectorAll(".d-node").forEach((node) => {
     node.addEventListener("click", () => showNode(node.dataset.id));
     node.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {

@@ -1688,6 +1688,13 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
 
 .d-edge.d-use { marker-end: url(#dep-arrow-use); }
 
+.d-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: stroke;
+}
+
 .d-edge.is-on { stroke: var(--teal-2); stroke-width: 2.6; }
 .d-edge.d-use {
   stroke: var(--clay);
@@ -1922,7 +1929,7 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
   stroke-dasharray: 5 4;
 }
 .dfd-node[data-kind="store"] rect { fill: #f3e6d8; stroke: #8a3b12; }
-.dfd-title { font-size: 15px; font-weight: 650; fill: #2a2420; text-anchor: middle; }
+.dfd-title { font-size: 13px; font-weight: 650; fill: #2a2420; text-anchor: middle; }
 .dfd-sub { font-size: 12px; fill: #6d645b; text-anchor: middle; }
 .store-bar { stroke: #8a3b12; stroke-width: 1.6; }
 .dfd-flow { cursor: pointer; }
