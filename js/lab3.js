@@ -78,8 +78,8 @@ const LAB3 = {
     {
       id: "DF1",
       name: "Порталға кіру",
-      nodes: ["student", "outsider", "portal"],
-      text: "Студент және сыртқы бұзушы шекараны кесіп порталға кіреді. Мұнда түпнұсқалық пен қолжетімділік тексеріледі.",
+      nodes: ["student", "teachers", "staff", "outsider", "portal"],
+      text: "№2 тізілімдегі студенттер, оқытушылар және әкімшілік порталға кіреді. Сыртқы бұзушы да осы есікке дейін ғана жетеді.",
     },
     {
       id: "DF2",
@@ -112,22 +112,31 @@ const LAB3 = {
       text: "ДҚБЖ көшірмені резервке береді. Көшірме — сол активтің екінші данасы.",
     },
     {
+      id: "DF8",
+      name: "LMS нәтижесі",
+      nodes: ["portal", "lms", "student", "teachers"],
+      text: "Студенттер мен оқытушылар порталдан LMS-ке өтеді. Олар студенттер дерекқорына кірмейді.",
+    },
+    {
       id: "DF7",
-      name: "Қызмет арнасы",
-      nodes: ["contractor", "dbms"],
-      text: "Мердігер порталды айналып, ДҚБЖ-ға уақытша әкімші арнасымен кіреді. Шекараны кесіп өтетін ең кең құқық.",
+      name: "Әкімші арнасы",
+      nodes: ["sysadmin", "dbms"],
+      text: "№2 тізілімдегі жүйе әкімшісі порталды айналып, ДҚБЖ-ға жетеді. Мердігердің уақытша арнасы осы жолмен өтеді.",
     },
   ],
   nodes: {
-    student: { title: "Студент", text: "Сыртқы субъект. Порталдан тек өз жазбасын көруі керек." },
+    student: { title: "Студенттер", text: "№2 тізілім. Порталдан LMS-ке өтеді, студенттер дерекқорына кірмейді." },
+    teachers: { title: "Оқытушылар", text: "№2 тізілім. Порталдан LMS-ке өтеді, қоймаға кірмейді." },
+    staff: { title: "Әкімшілік", text: "№2 тізілім. Порталда тоқтайды, студенттер дерекқорына кірмейді." },
     outsider: { title: "Сыртқы бұзушы", text: "Шекарадан тыс. Порталға дейін ғана жетеді, қоймаға тікелей жолы жоқ." },
-    registrar: { title: "Тіркеуші", text: "Ішкі субъект. Жазбаны өзгерту құқығы бар, сондықтан өзгеріс бекітіліп, журналдалады." },
-    contractor: { title: "Мердігер", text: "Серіктес. Құқығы шарт мерзімімен шектеледі және портал рөлін айналып өте алады." },
-    portal: { title: "Портал", text: "Қолданбалық есік. Студент, бұзушы және тіркеуші осында тоқтайды." },
-    iam: { title: "IAM", text: "Сәйкестендіру. Портал кім екенін осы қызметтен сұрайды." },
-    dbms: { title: "ДҚБЖ", text: "Сұрауды қойма мен резервке жеткізеді. Мердігердің қызмет арнасы осында кіреді." },
-    store: { title: "Студенттер ДҚ", text: "Қорғалатын актив. ЖСН, аты-жөні, байланыс, оқу мәртебесі." },
-    backup: { title: "Резерв", text: "Қойманың көшірмесі. Шифрланбаса, сол құпиялылық тәуекелі қайталанады." },
+    registrar: { title: "Тіркеуші", text: "№2 тізілім. Студенттер дерекқорына кіретін рөл. Өзгеріс бекітіліп, журналдалады." },
+    sysadmin: { title: "Жүйе әкімшісі", text: "№2 тізілім. ДҚБЖ мен резервке жетеді. Мердігердің уақытша арнасы осы жолмен өтеді." },
+    portal: { title: "Портал", text: "№2 тізілімдегі қолданбалық есік. Студент, оқытушы, әкімшілік және тіркеуші осында кіреді." },
+    iam: { title: "IAM", text: "№2 тізілімдегі сәйкестендіру. Портал кім екенін осы қызметтен сұрайды." },
+    lms: { title: "LMS нәтижесі", text: "№2 тізілім. Студент пен оқытушының жолы осында бітеді." },
+    dbms: { title: "ДҚБЖ", text: "№2 тізілім. Тіркеушінің сұрауын қойма мен резервке жеткізеді." },
+    store: { title: "Студенттер ДҚ", text: "№2 тізілімдегі қорғалатын актив. ЖСН, аты-жөні, байланыс, оқу мәртебесі." },
+    backup: { title: "Резерв", text: "№2 тізілімдегі көшірме. Шифрланбаса, сол құпиялылық тәуекелі қайталанады." },
   },
   threats: [
     {
@@ -661,15 +670,17 @@ function viewLab3() {
           <p>Таңдау №2 тізілімнен. Жоғары санат — жиынтық 8–9. Қызмет ететін жүйе сол активтің тәуелділігінен алынды.</p>
         </div>
         <article class="goal-card reveal">
-          <h3>${LAB3.object.name}</h3>
-          <p>${LAB3.object.text}</p>
+          <h3>${lab2AssetById("student-db").name}</h3>
+          <p>№2 тізілімнен алынған жоғары актив. Құпиялылық ${lab2AssetById("student-db").c}, тұтастық ${lab2AssetById("student-db").i}, қолжетімділік ${lab2AssetById("student-db").a}, жиынтық ${lab2Category(lab2AssetById("student-db")).sum}. Иесі — ${lab2AssetById("student-db").owner}. ${lab2AssetById("student-db").info}. Субъектілер де №2-ден: студенттер мен оқытушылар порталдан LMS-ке өтеді, әкімшілік порталда тоқтайды, тіркеуші қоймаға кіреді, жүйе әкімшісі ДҚБЖ мен резервке жетеді.</p>
           <p class="meta"><span>Тізілім</span><a href="#lab/2/registry">№2 активтер тізілімі</a></p>
         </article>
-        <div class="process-grid">
-          <article class="process-card"><h3>Портал</h3><p>Қолданбалық есік. Сыртқы және ішкі субъект осында кіреді.</p></article>
-          <article class="process-card"><h3>IAM</h3><p>Түпнұсқалықты растайды. Портал сессияны осында тексереді.</p></article>
-          <article class="process-card"><h3>ДҚБЖ</h3><p>Жазбаны қоймадан оқиды, резервке көшіреді, мердігер арнасын қабылдайды.</p></article>
-        </div>
+        <div class="process-grid">${["portal", "iam", "lms-grades", "dbms", "backup"]
+          .map((id) => {
+            const item = lab2AssetById(id);
+            const itemCat = lab2Category(item);
+            return `<article class="process-card"><h3>${LAB2_SHORT[id]}</h3><p>${item.info}. C/I/A ${item.c}/${item.i}/${item.a} · ${itemCat.label}.</p></article>`;
+          })
+          .join("")}</div>
         <p class="theory reveal">${LAB3.theory}</p>
         <div class="stride-grid">${stride}</div>
       </section>
@@ -678,14 +689,14 @@ function viewLab3() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 3</p>
           <h2>Контекстік сызба</h2>
-          <p>Үзік жиек — сенім шекарасы. Сыртта субъектілер, іште қызмет. Ағынды бассаңыз, сол шекарадағы қауіптер тізілімде ерекшеленеді.</p>
+          <p>Субъектілер мен жүйелер №2 тізілімнен. Студент, оқытушы және әкімшілік дерекқорға кірмейді. Қоймаға тіркеуші кіреді. Ағынды бассаңыз, сол шекарадағы қауіптер тізілімде ерекшеленеді.</p>
         </div>
         <div class="diagram-layout">
           <div class="dep-wrap reveal">${lab3DfdSvg()}</div>
           <aside class="dep-panel reveal" id="dfd-panel">
             <p class="eyebrow">Таңдалған ағын</p>
             <h3 id="dfd-title">Ағынды таңдаңыз</h3>
-            <p id="dfd-text">DF1 — порталға кіру. DF7 — мердігердің қызмет арнасы. Шекараны кесіп өткен әр сызық жеке тексеріледі.</p>
+            <p id="dfd-text">DF1 — порталға кіру. DF8 — LMS. DF7 — жүйе әкімшісінің арнасы. Шекараны кесіп өткен әр сызық жеке тексеріледі.</p>
           </aside>
         </div>
       </section>
@@ -771,62 +782,76 @@ function viewLab3() {
 
 function lab3DfdSvg() {
   const nodes = [
-    { id: "student", x: 250, y: 8, w: 230, h: 52, title: "Студент", sub: "сыртқы субъект", kind: "ext" },
-    { id: "registrar", x: 620, y: 8, w: 230, h: 52, title: "Тіркеуші", sub: "ішкі субъект", kind: "ext" },
-    { id: "outsider", x: 16, y: 130, w: 170, h: 54, title: "Бұзушы", sub: "сыртқы", kind: "ext" },
-    { id: "contractor", x: 930, y: 270, w: 170, h: 54, title: "Мердігер", sub: "серіктес", kind: "ext" },
-    { id: "portal", x: 250, y: 130, w: 230, h: 54, title: "Портал", sub: "қолданбалық есік", kind: "proc" },
-    { id: "iam", x: 620, y: 130, w: 230, h: 54, title: "IAM", sub: "сәйкестендіру", kind: "proc" },
-    { id: "dbms", x: 430, y: 270, w: 260, h: 54, title: "ДҚБЖ", sub: "сұраулар", kind: "proc" },
-    { id: "store", x: 250, y: 420, w: 250, h: 70, title: "Студенттер ДҚ", sub: "жеке дерек", kind: "store" },
-    { id: "backup", x: 620, y: 428, w: 230, h: 54, title: "Резерв", sub: "көшірме", kind: "proc" },
+    { id: "student", x: 200, y: 16, w: 156, h: 50, title: "Студенттер", sub: "портал, LMS", kind: "ext" },
+    { id: "teachers", x: 368, y: 16, w: 156, h: 50, title: "Оқытушылар", sub: "портал, LMS", kind: "ext" },
+    { id: "staff", x: 536, y: 16, w: 156, h: 50, title: "Әкімшілік", sub: "портал", kind: "ext" },
+    { id: "registrar", x: 704, y: 16, w: 156, h: 50, title: "Тіркеуші", sub: "дерекқор", kind: "ext" },
+    { id: "outsider", x: 12, y: 188, w: 148, h: 52, title: "Бұзушы", sub: "сыртқы", kind: "ext" },
+    { id: "sysadmin", x: 980, y: 320, w: 168, h: 52, title: "Жүйе әкімшісі", sub: "ДҚБЖ, резерв", kind: "ext" },
+    { id: "portal", x: 250, y: 188, w: 210, h: 52, title: "Портал", sub: "қолданбалық есік", kind: "proc" },
+    { id: "iam", x: 530, y: 188, w: 180, h: 52, title: "IAM", sub: "сәйкестендіру", kind: "proc" },
+    { id: "lms", x: 250, y: 320, w: 210, h: 52, title: "LMS нәтижесі", sub: "баға, қатысу", kind: "proc" },
+    { id: "dbms", x: 530, y: 320, w: 210, h: 52, title: "ДҚБЖ", sub: "сұраулар", kind: "proc" },
+    { id: "store", x: 250, y: 460, w: 210, h: 68, title: "Студенттер ДҚ", sub: "жеке дерек", kind: "store" },
+    { id: "backup", x: 530, y: 468, w: 210, h: 52, title: "Резерв", sub: "көшірме", kind: "proc" },
   ];
 
   const flows = [
     {
       id: "DF1",
-      nodes: ["student", "outsider", "portal"],
-      paths: ["M 365 60 L 365 130", "M 186 157 L 250 157"],
+      nodes: ["student", "teachers", "staff", "outsider", "portal"],
+      paths: [
+        "M 278 66 L 278 100 L 355 100 L 355 188",
+        "M 446 66 L 446 100 L 355 100 L 355 188",
+        "M 614 66 L 614 100 L 355 100 L 355 188",
+        "M 160 214 L 250 214",
+      ],
       labels: [
-        { x: 392, y: 100, text: "DF1" },
-        { x: 218, y: 176, text: "DF1" },
+        { x: 300, y: 92, text: "DF1" },
+        { x: 190, y: 206, text: "DF1" },
       ],
     },
     {
       id: "DF2",
       nodes: ["registrar", "portal"],
-      paths: ["M 735 60 L 735 72 L 430 72 L 430 130"],
-      labels: [{ x: 582, y: 64, text: "DF2" }],
+      paths: ["M 782 66 L 782 118 L 430 118 L 430 188"],
+      labels: [{ x: 600, y: 110, text: "DF2" }],
     },
     {
       id: "DF3",
       nodes: ["portal", "iam"],
-      paths: ["M 480 157 L 620 157"],
-      labels: [{ x: 550, y: 148, text: "DF3" }],
+      paths: ["M 460 214 L 530 214"],
+      labels: [{ x: 478, y: 206, text: "DF3" }],
+    },
+    {
+      id: "DF8",
+      nodes: ["portal", "lms", "student", "teachers"],
+      paths: ["M 320 240 L 320 320"],
+      labels: [{ x: 332, y: 286, text: "DF8" }],
     },
     {
       id: "DF4",
       nodes: ["portal", "dbms"],
-      paths: ["M 365 184 L 365 230 L 560 230 L 560 270"],
-      labels: [{ x: 462, y: 222, text: "DF4" }],
+      paths: ["M 420 240 L 420 286 L 635 286 L 635 320"],
+      labels: [{ x: 520, y: 278, text: "DF4" }],
     },
     {
       id: "DF5",
       nodes: ["dbms", "store"],
-      paths: ["M 480 324 L 480 356 L 375 356 L 375 420"],
-      labels: [{ x: 428, y: 348, text: "DF5" }],
+      paths: ["M 635 372 L 635 420 L 355 420 L 355 460"],
+      labels: [{ x: 500, y: 412, text: "DF5" }],
     },
     {
       id: "DF6",
       nodes: ["dbms", "backup"],
-      paths: ["M 640 324 L 640 392 L 735 392 L 735 428"],
-      labels: [{ x: 688, y: 384, text: "DF6" }],
+      paths: ["M 700 372 L 700 468"],
+      labels: [{ x: 712, y: 420, text: "DF6" }],
     },
     {
       id: "DF7",
-      nodes: ["contractor", "dbms"],
-      paths: ["M 930 297 L 690 297"],
-      labels: [{ x: 800, y: 288, text: "DF7" }],
+      nodes: ["sysadmin", "dbms"],
+      paths: ["M 980 346 L 740 346"],
+      labels: [{ x: 850, y: 338, text: "DF7" }],
     },
   ];
 
@@ -866,14 +891,14 @@ function lab3DfdSvg() {
 
   return `
     <div class="dep-figure">
-      <svg class="dfd-svg" viewBox="0 0 1120 680" role="img" aria-label="Студенттер дерекқоры қызметінің контекстік сызбасы">
+      <svg class="dfd-svg" viewBox="0 0 1180 640" role="img" aria-label="№2 тізілімдегі активтердің контекстік сызбасы">
         <defs>
           <marker id="dfd-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
             <path d="M 0 0 L 8 4 L 0 8 Z" fill="#8a3b12" />
           </marker>
         </defs>
-        <rect class="dfd-boundary" x="210" y="86" width="700" height="500" rx="18" />
-        <text class="dfd-boundary-label" x="228" y="112">Сенім шекарасы</text>
+        <rect class="dfd-boundary" x="210" y="150" width="720" height="420" rx="18" />
+        <text class="dfd-boundary-label" x="228" y="174">Сенім шекарасы</text>
         ${boxes}
         ${lines}
       </svg>
@@ -932,7 +957,7 @@ function bindLab3() {
     if (panelTitle) panelTitle.textContent = "Ағынды таңдаңыз";
     if (panelText) {
       panelText.textContent =
-        "DF1 — порталға кіру. DF7 — мердігердің қызмет арнасы. Шекараны кесіп өткен әр сызық жеке тексеріледі.";
+        "DF1 — порталға кіру. DF8 — LMS. DF7 — жүйе әкімшісінің арнасы. Шекараны кесіп өткен әр сызық жеке тексеріледі.";
     }
   }
 
