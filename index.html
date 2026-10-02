@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ақпаратты қорғау жүйелерін жобалау — зертханалар</title>
+  <meta name="author" content="Сұлтан Гүлнұр">
+  <meta name="description" content="Smart Campus бойынша алты зертханалық жұмыс. Автор: Сұлтан Гүлнұр">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <header class="header">
+    <a class="logo" href="#labs">
+      <span class="logo-mark">АҚ</span>
+      <span class="logo-text">
+        <strong>Қорғау жүйелері</strong>
+        <small id="logo-sub">6 зертхана</small>
+      </span>
+    </a>
+    <nav class="nav" id="site-nav">
+      <a data-nav="labs" href="#labs">Зертханалар</a>
+      <a data-nav="home" data-lab="1" href="#home" hidden>Басты</a>
+      <a data-nav="standards" data-lab="1" href="#standards-list" hidden>Стандарттар</a>
+      <a data-nav="literature" data-lab="1" href="#literature" hidden>Әдебиеттер</a>
+      <a data-nav="practice" data-lab="1" href="#practice" hidden>Практика</a>
+      <a data-nav="quiz" data-lab="1" class="nav-cta" href="#quiz" hidden>Сұрақтарға жауап</a>
+      <a data-nav="l2-home" data-lab="2" href="#lab/2" hidden>Басты</a>
+      <a data-nav="l2-registry" data-lab="2" href="#lab/2/registry" hidden>Тізілім</a>
+      <a data-nav="l2-scale" data-lab="2" href="#lab/2/scale" hidden>Жіктеу</a>
+      <a data-nav="l2-diagram" data-lab="2" href="#lab/2/diagram" hidden>Сызба</a>
+      <a data-nav="l2-quiz" data-lab="2" class="nav-cta" href="#lab/2/quiz" hidden>Сұрақтар</a>
+      <a data-nav="l3-home" data-lab="3" href="#lab/3" hidden>Басты</a>
+      <a data-nav="l3-object" data-lab="3" href="#lab/3/object" hidden>Нысан</a>
+      <a data-nav="l3-diagram" data-lab="3" href="#lab/3/diagram" hidden>Сызба</a>
+      <a data-nav="l3-actors" data-lab="3" href="#lab/3/actors" hidden>Бұзушы</a>
+      <a data-nav="l3-registry" data-lab="3" href="#lab/3/registry" hidden>Тізілім</a>
+      <a data-nav="l3-quiz" data-lab="3" class="nav-cta" href="#lab/3/quiz" hidden>Сұрақтар</a>
+    </nav>
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      <p><strong>Пән:</strong> <span id="footer-subject"></span></p>
+      <p><strong>Автор:</strong> <span id="footer-author"></span></p>
+    </div>
+    <p class="footer-note"><span id="footer-note">6 зертханалық жұмыс</span> · <span id="year"></span></p>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/lab2.js"></script>
+  <script src="js/lab3.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
