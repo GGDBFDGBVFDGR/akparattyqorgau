@@ -1840,6 +1840,21 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
 .lab3 .stat-stack strong { color: #8a3b12; }
 .lab3 .report-nav a:hover { border-color: #8a3b12; color: #8a3b12; }
 
+.lab4 .stat-stack div { border-left-color: #5c3d7a; }
+.lab4 .stat-stack strong { color: #5c3d7a; }
+.lab4 .report-nav a:hover { border-color: #5c3d7a; color: #5c3d7a; }
+
+.access-matrix td:nth-child(2),
+.access-matrix th:nth-child(2) { text-align: left; font-weight: 600; }
+.access-matrix td:last-child,
+.access-matrix th:last-child { text-align: left; font-weight: 500; min-width: 16rem; }
+.perm-yes { color: #0d5c4b; font-weight: 700; }
+.perm-no { color: #b7ab9e; }
+.test-yes { color: #0d5c4b; font-weight: 700; }
+.test-no { color: #8a3b12; font-weight: 700; }
+.lab4 .d-edge { marker-end: url(#lab4-arrow); }
+.lab4 .d-node { cursor: default; }
+
 .limit-note {
   margin: 0.2rem 0 1rem;
   padding: 0.85rem 1rem;

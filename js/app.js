@@ -9,7 +9,7 @@
   if (subjectEl) subjectEl.textContent = COURSE.subject;
   if (authorEl) authorEl.textContent = COURSE.author;
 
-  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3" };
+  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4" };
   const LAB2_NAV = {
     registry: "l2-registry",
     scale: "l2-scale",
@@ -23,6 +23,14 @@
     registry: "l3-registry",
     quiz: "l3-quiz",
   };
+  const LAB4_NAV = {
+    object: "l4-object",
+    roles: "l4-roles",
+    matrix: "l4-matrix",
+    lifecycle: "l4-lifecycle",
+    tests: "l4-tests",
+    quiz: "l4-quiz",
+  };
 
   function route() {
     const hash = location.hash.slice(1) || "labs";
@@ -33,7 +41,7 @@
       page === "quiz" ||
       page === "practice" ||
       homeAnchors.has(page);
-    const mode = page === "lab" && (id === "2" || id === "3") ? id : inLab1 ? "1" : "menu";
+    const mode = page === "lab" && (id === "2" || id === "3" || id === "4") ? id : inLab1 ? "1" : "menu";
 
     setChrome(mode);
 
@@ -56,6 +64,11 @@
         bindLab3();
       }
       highlightNav(LAB3_NAV[section] || "l3-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "4") {
+      const need = !app.querySelector(".lab4");
+      if (need) render(viewLab4());
+      highlightNav(LAB4_NAV[section] || "l4-home");
       scrollLab(section, need);
     } else if (page === "standard" && id) {
       const item = STANDARDS.find((s) => s.id === id);
@@ -125,6 +138,7 @@
       1: ["Зертхана №1", "№1 зертханалық жұмыс", `${APP.title} — №1 зертхана`],
       2: ["Зертхана №2", "№2 зертханалық жұмыс", `${LAB2.title} — №2 зертхана`],
       3: ["Зертхана №3", "№3 зертханалық жұмыс", `${LAB3.title} — №3 зертхана`],
+      4: ["Зертхана №4", "№4 зертханалық жұмыс", `${LAB4.title} — №4 зертхана`],
     };
     const [sub, note, title] = chrome[mode] || [
       "6 зертхана",
@@ -209,7 +223,7 @@
           <div class="block-head reveal">
             <p class="eyebrow">Мәзір</p>
             <h2>Зертханалық жұмыстар</h2>
-            <p>Курс Smart Campus сценарийі бойынша жүреді. №1, №2 және №3 зертхана ашық.</p>
+            <p>Курс Smart Campus сценарийі бойынша жүреді. №1, №2, №3 және №4 зертхана ашық.</p>
           </div>
           <div class="lab-grid">
             ${cards}
