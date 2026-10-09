@@ -724,7 +724,7 @@ function viewLab3() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 3</p>
           <h2>Контекстік сызба</h2>
-          <p>Контекстік сызба №2 тәуелділік сызбасын сол қалпында жалғастырады. Сыртқы бұзушы да сол ретпен кіреді: IAM, содан кейін портал.</p>
+          <p>Контекстік сызба №2 тәуелділік сызбасын сол қалпында жалғастырады. Әр ағын сызықтың жанында DF1 · Порталға кіру түрінде белгіленген.</p>
         </div>
         <div class="diagram-layout">
           <div class="dep-wrap reveal">${lab3DfdSvg()}</div>
@@ -940,6 +940,7 @@ function lab3DfdSvg() {
         ${wifiPaths}
         ${outsiderPath}
         ${nodes}
+        ${flowMarks(byId)}
       </svg>
       <div class="dep-legend">
         <span><i class="dot dot-high"></i>Жоғары</span>
@@ -949,6 +950,32 @@ function lab3DfdSvg() {
         <span><i class="wifi-line"></i>Бөлек Wi-Fi</span>
       </div>
     </div>`;
+}
+
+function flowMarks(byId) {
+  const iam = byId.iam;
+  const spots = [
+    ["DF1", iam.x + iam.w + 12, iam.y + iam.h + 18],
+    ["DF3", iam.x - 168, iam.y + iam.h + 18],
+    ["DF9", 150, byId.acs.y - 16],
+    ["DF4", byId.portal.x + byId.portal.w - 16, byId.portal.y - 14],
+    ["DF2", byId.portal.x + byId.portal.w + 12, byId.portal.y + byId.portal.h + 18],
+    ["DF5", byId["student-db"].x - 96, byId["student-db"].y - 26],
+    ["DF8", byId["lms-grades"].x + byId["lms-grades"].w + 12, byId["lms-grades"].y - 20],
+    ["DF6", byId.backup.x + byId.backup.w + 12, byId["lms-grades"].y + byId["lms-grades"].h + 32],
+    ["DF11", byId.officer.x, byId.officer.y + byId.officer.h + 54],
+    ["DF7", byId.sysadmin.x, byId.sysadmin.y + byId.sysadmin.h + 54],
+    ["DF10", byId.guests.x - 20, byId.iam.y + 62],
+  ];
+  return spots
+    .map(([id, x, y]) => {
+      const flow = LAB3.flows.find((item) => item.id === id);
+      const label = `${flow.id} · ${flow.name}`;
+      const width = Math.ceil(label.length * 6.8) + 14;
+      const height = 18;
+      return `<g class="dfd-mark" data-flow="${id}"><rect x="${x}" y="${y - height / 2}" width="${width}" height="${height}" rx="5" /><text x="${x + 7}" y="${y}">${label}</text></g>`;
+    })
+    .join("");
 }
 
 function bindLab3() {
@@ -1014,7 +1041,7 @@ function bindLab3() {
   function clearFocus() {
     focus = null;
     document.querySelector(".dep-svg")?.classList.remove("is-active");
-    document.querySelectorAll(".dfd-flow, .d-node, .threat-row").forEach((node) => {
+    document.querySelectorAll(".dfd-flow, .d-node, .threat-row, .dfd-mark").forEach((node) => {
       node.classList.remove("is-on", "is-dim", "is-hit");
     });
     if (panelTitle) panelTitle.textContent = "Ағынды таңдаңыз";
@@ -1037,6 +1064,11 @@ function bindLab3() {
       const on = nodeIds.has(node.dataset.id);
       node.classList.toggle("is-on", on);
       node.classList.toggle("is-dim", !on);
+    });
+    document.querySelectorAll(".dfd-mark").forEach((mark) => {
+      const on = ids.has(mark.dataset.flow);
+      mark.classList.toggle("is-on", on);
+      mark.classList.toggle("is-dim", !on);
     });
     document.querySelector(".dep-svg")?.classList.add("is-active");
     document.querySelectorAll(".threat-row").forEach((row) => {

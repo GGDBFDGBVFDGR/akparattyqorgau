@@ -1936,6 +1936,17 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
 .dfd-hit { fill: none; stroke: transparent; stroke-width: 14; }
 .dfd-line { fill: none; stroke: #8a3b12; stroke-width: 2.1; }
 .dfd-tag { font-size: 12px; font-weight: 700; fill: #8a3b12; text-anchor: middle; }
+.dfd-mark { pointer-events: none; }
+.dfd-mark rect { fill: #fff; stroke: #8a3b12; stroke-width: 1; }
+.dfd-mark text {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  fill: #8a3b12;
+  dominant-baseline: middle;
+}
+.dep-svg.is-active .dfd-mark.is-dim { opacity: 0.28; }
+.dfd-mark.is-on rect { stroke-width: 1.8; }
 .dfd-svg.is-active .dfd-line:not(.is-on) { opacity: 0.16; }
 .dfd-svg.is-active .dfd-node:not(.is-on) { opacity: 0.35; }
 .dfd-node.is-on rect { stroke-width: 2.6; }
