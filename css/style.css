@@ -1986,7 +1986,23 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
 .threat-table th:nth-child(5),
 .threat-table td:nth-child(5) {
   text-align: center;
-  width: 6.5rem;
+  width: 8.5rem;
+}
+
+.score-cell {
+  white-space: nowrap;
+}
+
+.score-times {
+  margin: 0 0.15rem;
+  font-weight: 700;
+}
+
+.score-product {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 .threat-row { cursor: pointer; }
 .threat-row:hover,

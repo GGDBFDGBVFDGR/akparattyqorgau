@@ -78,7 +78,7 @@ const LAB3 = {
     {
       id: "DF1",
       name: "Порталға кіру",
-      nodes: ["students", "teachers", "staff", "iam", "portal"],
+      nodes: ["students", "teachers", "staff", "iam", "portal", "outsider"],
       text: "№2 тізілімдегі студенттер, оқытушылар және әкімшілік порталға кіреді. Сыртқы бұзушы да осы есікке дейін ғана жетеді.",
     },
     {
@@ -483,6 +483,13 @@ function lab3Score(threat) {
   return threat.likelihood * threat.impact;
 }
 
+function lab3ScaleSelect(threat, key, label) {
+  const options = [1, 2, 3]
+    .map((n) => `<option value="${n}"${n === threat[key] ? " selected" : ""}>${n}</option>`)
+    .join("");
+  return `<select class="cia-input" data-scale="${key}" aria-label="${label}">${options}</select>`;
+}
+
 function viewLab3() {
   const tasks = LAB3.tasks
     .map(
@@ -548,7 +555,12 @@ function viewLab3() {
           <td>${threat.title}</td>
           <td>${threat.actor}</td>
           <td>${threat.vuln}</td>
-          <td class="num">${threat.likelihood}/${threat.impact}<span class="cell-sub">${score}</span></td>
+          <td class="num score-cell">
+            ${lab3ScaleSelect(threat, "likelihood", "Ықтималдық")}
+            <span class="score-times">×</span>
+            ${lab3ScaleSelect(threat, "impact", "Әсер")}
+            <span class="cell-sub score-product">${score}</span>
+          </td>
           <td>${threat.control}</td>
         </tr>
         <tr class="threat-detail" data-detail="${threat.id}" hidden>
@@ -596,7 +608,7 @@ function viewLab3() {
         <header>
           <span class="prio-badge">${threat.priority}</span>
           <h3>${threat.id} · ${threat.title}</h3>
-          <span class="num">${threat.likelihood}/${threat.impact} · ${lab3Score(threat)}</span>
+          <span class="num score-readout" data-id="${threat.id}">${threat.likelihood}×${threat.impact} = ${lab3Score(threat)}</span>
         </header>
         <p>${threat.chain.source} → ${threat.chain.vuln} → ${threat.chain.action} → ${threat.chain.impact}</p>
         <div class="prio-measures">
@@ -712,7 +724,7 @@ function viewLab3() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 3</p>
           <h2>Контекстік сызба</h2>
-          <p>Бұл №2 тәуелділік сызбасының жалғасы: сызықтар сол ретпен жүреді. Адам → IAM → портал немесе ACS, содан кейін дерек пен желі. Сызықты бассаңыз, сол ағындағы қауіптер ашылады.</p>
+          <p>Контекстік сызба №2 тәуелділік сызбасын сол қалпында жалғастырады. Сыртқы бұзушы да сол ретпен кіреді: IAM, содан кейін портал.</p>
         </div>
         <div class="diagram-layout">
           <div class="dep-wrap reveal">${lab3DfdSvg()}</div>
@@ -737,7 +749,7 @@ function viewLab3() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 5</p>
           <h2>Қауіптер тізілімі</h2>
-          <p>12 қауіп. Ұпай — ықтималдық × әсер. Жолды ашсаңыз, көз → осалдық → әрекет → салдар тізбегі шығады.</p>
+          <p>12 қауіп. Ұпай — ықтималдық × әсер, екеуін де 1–3 аралығында өзгертуге болады. Жолды ашсаңыз, көз → осалдық → әрекет → салдар тізбегі шығады.</p>
         </div>
         <div class="table-wrap reveal">
           <table class="stride-matrix">
@@ -760,7 +772,7 @@ function viewLab3() {
                 <th>Қауіп сценарийі</th>
                 <th>Бұзушы</th>
                 <th>Осалдық</th>
-                <th>Ықт./әсер</th>
+                <th>Ұпай</th>
                 <th>Қорғаныс шарасы</th>
               </tr>
             </thead>
@@ -864,6 +876,20 @@ function lab3DfdSvg() {
     })
     .join("");
 
+  const portal = byId.portal;
+  const iam = byId.iam;
+  const outsider = { x: -168, y: portal.y, w: 140, h: portal.h };
+  const outX = outsider.x + outsider.w / 2;
+  const lane = iam.y - 18;
+  const iamX = iam.x + iam.w / 2;
+  const outsiderPath = markup(
+    `M ${outX} ${outsider.y} L ${outX} ${lane} L ${iamX} ${lane} L ${iamX} ${iam.y}`,
+    "outsider",
+    "iam",
+    "DF1",
+    ""
+  );
+
   const systems = layout.nodes.filter((node) => lab2AssetById(node.id)?.type !== "human");
   const minX = Math.min(...systems.map((node) => node.x)) - 36;
   const minY = Math.min(...systems.map((node) => node.y)) - 28;
@@ -885,11 +911,17 @@ function lab3DfdSvg() {
         : `<text x="${cx}" y="${node.y + node.h / 2}">${label}</text>`;
       return `<g class="d-node dfd-node" data-id="${node.id}" data-cat="${cat}" tabindex="0" role="button"><title>${asset ? asset.name : label}</title><rect x="${node.x}" y="${node.y}" width="${node.w}" height="${node.h}" rx="12" />${text}</g>`;
     })
-    .join("");
+    .join("") + `
+      <g class="d-node dfd-node" data-id="outsider" data-kind="ext" data-cat="low" tabindex="0" role="button">
+        <title>Сыртқы бұзушы</title>
+        <rect x="${outsider.x}" y="${outsider.y}" width="${outsider.w}" height="${outsider.h}" rx="12" />
+        <text class="d-node-title" x="${outsider.x + outsider.w / 2}" y="${outsider.y + 20}">Бұзушы</text>
+        <text class="d-node-sub" x="${outsider.x + outsider.w / 2}" y="${outsider.y + 36}">шекарадан тыс</text>
+      </g>`;
 
   return `
     <div class="dep-figure">
-      <svg class="dep-svg" viewBox="0 0 ${layout.railBase + 28} ${layout.height}" role="img" aria-label="№2 тәуелділік сызбасының жалғасы">
+      <svg class="dep-svg" viewBox="-188 0 ${layout.railBase + 216} ${layout.height}" role="img" aria-label="№2 тәуелділік сызбасының жалғасы">
         <defs>
           <marker id="dep-arrow" viewBox="0 0 10 10" markerWidth="14" markerHeight="14" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
             <path d="M 0 1 L 10 5 L 0 9 Z" fill="#0d5c4b" />
@@ -906,6 +938,7 @@ function lab3DfdSvg() {
         ${labels}
         ${edges}
         ${wifiPaths}
+        ${outsiderPath}
         ${nodes}
       </svg>
       <div class="dep-legend">
@@ -924,6 +957,30 @@ function bindLab3() {
   const panelText = document.getElementById("dfd-text");
   if (!filters || filters.dataset.bound) return;
   filters.dataset.bound = "1";
+
+  const threatTable = document.querySelector(".threat-table");
+  threatTable?.addEventListener(
+    "click",
+    (event) => {
+      if (event.target.closest(".cia-input")) event.stopPropagation();
+    },
+    true
+  );
+  threatTable?.addEventListener("change", (event) => {
+    const input = event.target.closest(".cia-input");
+    if (!input) return;
+    const row = input.closest(".threat-row");
+    const threat = LAB3.threats.find((item) => item.id === row?.dataset.id);
+    const key = input.dataset.scale;
+    const value = Number(input.value);
+    if (!threat || !["likelihood", "impact"].includes(key) || value < 1 || value > 3) return;
+    threat[key] = value;
+    const score = lab3Score(threat);
+    const product = row.querySelector(".score-product");
+    if (product) product.textContent = String(score);
+    const readout = document.querySelector(`.score-readout[data-id="${threat.id}"]`);
+    if (readout) readout.textContent = `${threat.likelihood}×${threat.impact} = ${score}`;
+  });
 
   let focus = null;
 
