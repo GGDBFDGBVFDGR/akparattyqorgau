@@ -67,7 +67,10 @@
       scrollLab(section, need);
     } else if (page === "lab" && id === "4") {
       const need = !app.querySelector(".lab4");
-      if (need) render(viewLab4());
+      if (need) {
+        render(viewLab4());
+        bindLab4();
+      }
       highlightNav(LAB4_NAV[section] || "l4-home");
       scrollLab(section, need);
     } else if (page === "standard" && id) {
@@ -206,6 +209,7 @@
               <span><em>Нысан</em>${COURSE.campus}</span>
               <span><em>Жұмыс</em>6 зертхана</span>
             </div>
+            <p class="reveal" style="margin-top:1rem"><a class="btn btn-primary" href="campus.html">Кампус порталын ашу</a></p>
           </div>
           <div class="hero-panel reveal" aria-hidden="true">
             <div class="orbit">

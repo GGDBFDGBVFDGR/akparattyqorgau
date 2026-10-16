@@ -304,6 +304,34 @@ function lab4LifeSvg() {
     </svg>`;
 }
 
+function bindLab4() {
+  const filters = document.getElementById("role-filters");
+  const note = document.getElementById("role-note");
+  if (!filters || filters.dataset.bound) return;
+  filters.dataset.bound = "1";
+
+  filters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-role]");
+    if (!button) return;
+    const key = button.dataset.role;
+    filters.querySelectorAll(".chip").forEach((chip) => {
+      const on = chip === button;
+      chip.classList.toggle("is-on", on);
+      chip.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    document.querySelectorAll("#access-matrix tbody tr").forEach((row) => {
+      row.hidden = key !== "all" && row.dataset.role !== key;
+    });
+    if (!note) return;
+    if (key === "all") {
+      note.textContent = `${LAB4.roles.length} рөл × ${LAB4.resources.length} ресурс.`;
+      return;
+    }
+    const role = lab4Role(key);
+    note.textContent = role ? `${role.who}. ${role.text}` : "";
+  });
+}
+
 function viewLab4() {
   const tasks = LAB4.tasks
     .map(
@@ -344,10 +372,18 @@ function viewLab4() {
           .split("")
           .map((bit) => (bit === "1" ? `<td class="perm-yes">+</td>` : `<td class="perm-no">−</td>`))
           .join("");
-        return `<tr><th scope="row">${role.name}</th><td>${resource.name}</td>${cells}<td>${why}</td></tr>`;
+        return `<tr data-role="${role.id}"><th scope="row">${role.name}</th><td>${resource.name}</td>${cells}<td>${why}</td></tr>`;
       })
     )
     .join("");
+
+  const roleChips = [
+    `<button type="button" class="chip is-on" data-role="all" aria-pressed="true">Барлығы</button>`,
+    ...LAB4.roles.map(
+      (role) =>
+        `<button type="button" class="chip" data-role="${role.id}" aria-pressed="false">${role.name}</button>`
+    ),
+  ].join("");
 
   const sod = LAB4.sod
     .map(
@@ -510,10 +546,12 @@ function viewLab4() {
         <div class="block-head reveal">
           <p class="eyebrow">Есеп · 4</p>
           <h2>Қолжетімділік матрицасы</h2>
-          <p>${LAB4.roles.length} рөл × ${LAB4.resources.length} ресурс. + рұқсат, − жоқ. Әр жолдың негіздемесі бар.</p>
+          <p>Рөлді таңдаңыз. + рұқсат, − жоқ. Әр жолдың негіздемесі бар.</p>
         </div>
+        <div class="chip-row reveal" id="role-filters">${roleChips}</div>
+        <p class="role-note reveal" id="role-note">${LAB4.roles.length} рөл × ${LAB4.resources.length} ресурс.</p>
         <div class="table-wrap reveal">
-          <table class="stride-matrix access-matrix">
+          <table class="stride-matrix access-matrix" id="access-matrix">
             <thead>
               <tr>
                 <th>Рөл</th>
