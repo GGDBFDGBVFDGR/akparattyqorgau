@@ -2040,6 +2040,80 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
 .backup-scheme strong { font-size: 1.05rem; }
 .backup-scheme span { color: var(--ink); }
 
+.lab8 section[id] { scroll-margin-top: 1rem; }
+.lab8 .stat-stack div { border-left-color: #243056; }
+.lab8 .stat-stack strong { color: #243056; }
+.lab8 .report-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.lab8 .report-nav a:hover { border-color: #243056; color: #243056; }
+.lab8 .chip.is-on {
+  background: #243056;
+  border-color: #243056;
+  color: #f6f2ea;
+}
+.lab8 .process-grid { margin-top: 0.4rem; }
+.lab8-users th,
+.lab8-users td,
+.lab8-principle th,
+.lab8-principle td,
+.lab8-req th,
+.lab8-req td,
+.lab8-flow th,
+.lab8-flow td,
+.lab8-layer th,
+.lab8-layer td,
+.lab8-tech th,
+.lab8-tech td,
+.lab8-tool th,
+.lab8-tool td,
+.lab8-left th,
+.lab8-left td { text-align: left; font-weight: 500; vertical-align: top; }
+.req-f { color: #243056; font-weight: 700; }
+.req-n { color: #5c3d7a; font-weight: 700; }
+.lab8 .arch-svg { min-width: 880px; }
+.lab8 .arch-node { cursor: pointer; }
+.lab8 .arch-node text {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-family: "Instrument Sans", sans-serif;
+  pointer-events: none;
+}
+.lab8 .arch-title { font-size: 14px; font-weight: 700; fill: #2a2420; }
+.lab8 .arch-sub { font-size: 11px; font-weight: 600; fill: #5c564e; }
+.lab8 .arch-node rect { stroke-width: 1.6; }
+.lab8 .arch-svg.is-active .arch-node.is-on rect { stroke-width: 2.8; }
+.lab8 .arch-svg.is-active .arch-node.is-dim { opacity: 0.28; }
+.lab8 .arch-edge { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.lab8 .arch-allow { stroke: #243056; stroke-width: 1.8; marker-end: url(#lab8-arrow); }
+.lab8 .arch-mgmt { stroke: #5c3d7a; stroke-width: 1.7; stroke-dasharray: 5 4; marker-end: url(#lab8-mgmt); }
+.lab8 .arch-log { stroke: #1a4f6e; stroke-width: 1.6; marker-end: url(#lab8-log); }
+.lab8 .arch-deny { stroke: #8a3b12; stroke-width: 1.7; stroke-dasharray: 4 4; }
+.lab8 .arch-svg.is-active .arch-edge:not(.is-on),
+.lab8 .arch-svg.is-active .arch-tag:not(.is-on) { opacity: 0.14; }
+.lab8 .arch-tag { pointer-events: none; }
+.lab8 .arch-tag rect { fill: #fffdf9; stroke: #d9d1c7; }
+.lab8 .arch-tag text {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  fill: #243056;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.lab8 .arch-tag.is-deny text { fill: #8a3b12; }
+.lab8 .arch-tag.is-deny rect { stroke: #e3c2b4; }
+.arch-key {
+  width: 1.15rem;
+  height: 0;
+  border-top: 2px solid #243056;
+  display: inline-block;
+}
+.arch-key-mgmt { border-top: 2px dashed #5c3d7a; }
+.arch-key-log { border-top-color: #1a4f6e; }
+.arch-key-deny { border-top: 2px dashed #8a3b12; }
+.lab8 .arch-tool { border-top-color: #243056; }
+.lab8 #arch-panel ul { margin: 0.7rem 0 0; padding-left: 1.15rem; }
+.lab8 #arch-panel li { margin: 0.35rem 0; }
+
 .lab6-risks th:nth-child(4),
 .lab6-risks th:nth-child(5),
 .lab6-risks th:nth-child(6),

@@ -9,7 +9,7 @@
   if (subjectEl) subjectEl.textContent = COURSE.subject;
   if (authorEl) authorEl.textContent = COURSE.author;
 
-  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4", 5: "#lab/5", 6: "#lab/6", 7: "#lab/7" };
+  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4", 5: "#lab/5", 6: "#lab/6", 7: "#lab/7", 8: "#lab/8" };
   const LAB2_NAV = {
     registry: "l2-registry",
     scale: "l2-scale",
@@ -52,6 +52,14 @@
     exercise: "l7-exercise",
     quiz: "l7-quiz",
   };
+  const LAB8_NAV = {
+    object: "l8-object",
+    requirements: "l8-requirements",
+    zones: "l8-zones",
+    tools: "l8-tools",
+    residual: "l8-residual",
+    quiz: "l8-quiz",
+  };
 
   function route() {
     const hash = location.hash.slice(1) || "labs";
@@ -62,7 +70,7 @@
       page === "quiz" ||
       page === "practice" ||
       homeAnchors.has(page);
-    const mode = page === "lab" && (id === "2" || id === "3" || id === "4" || id === "5" || id === "6" || id === "7") ? id : inLab1 ? "1" : "menu";
+    const mode = page === "lab" && (id === "2" || id === "3" || id === "4" || id === "5" || id === "6" || id === "7" || id === "8") ? id : inLab1 ? "1" : "menu";
 
     setChrome(mode);
 
@@ -117,6 +125,14 @@
         bindLab7();
       }
       highlightNav(LAB7_NAV[section] || "l7-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "8") {
+      const need = !app.querySelector(".lab8");
+      if (need) {
+        render(viewLab8());
+        bindLab8();
+      }
+      highlightNav(LAB8_NAV[section] || "l8-home");
       scrollLab(section, need);
     } else if (page === "standard" && id) {
       const item = STANDARDS.find((s) => s.id === id);
@@ -190,6 +206,7 @@
       5: ["Зертхана №5", "№5 зертханалық жұмыс", `${LAB5.title} — №5 зертхана`],
       6: ["Зертхана №6", "№6 зертханалық жұмыс", `${LAB6.title} — №6 зертхана`],
       7: ["Зертхана №7", "№7 зертханалық жұмыс", `${LAB7.title} — №7 зертхана`],
+      8: ["Зертхана №8", "№8 зертханалық жұмыс", `${LAB8.title} — №8 зертхана`],
     };
     const [sub, note, title] = chrome[mode] || [
       "10 зертхана",
