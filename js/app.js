@@ -9,7 +9,7 @@
   if (subjectEl) subjectEl.textContent = COURSE.subject;
   if (authorEl) authorEl.textContent = COURSE.author;
 
-  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4" };
+  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4", 5: "#lab/5", 6: "#lab/6", 7: "#lab/7" };
   const LAB2_NAV = {
     registry: "l2-registry",
     scale: "l2-scale",
@@ -31,6 +31,27 @@
     tests: "l4-tests",
     quiz: "l4-quiz",
   };
+  const LAB5_NAV = {
+    zones: "l5-zones",
+    traffic: "l5-traffic",
+    defense: "l5-defense",
+    quiz: "l5-quiz",
+  };
+  const LAB6_NAV = {
+    object: "l6-object",
+    swot: "l6-swot",
+    risks: "l6-risks",
+    plan: "l6-plan",
+    quiz: "l6-quiz",
+  };
+  const LAB7_NAV = {
+    object: "l7-object",
+    bia: "l7-bia",
+    backup: "l7-backup",
+    scenarios: "l7-scenarios",
+    exercise: "l7-exercise",
+    quiz: "l7-quiz",
+  };
 
   function route() {
     const hash = location.hash.slice(1) || "labs";
@@ -41,7 +62,7 @@
       page === "quiz" ||
       page === "practice" ||
       homeAnchors.has(page);
-    const mode = page === "lab" && (id === "2" || id === "3" || id === "4") ? id : inLab1 ? "1" : "menu";
+    const mode = page === "lab" && (id === "2" || id === "3" || id === "4" || id === "5" || id === "6" || id === "7") ? id : inLab1 ? "1" : "menu";
 
     setChrome(mode);
 
@@ -72,6 +93,30 @@
         bindLab4();
       }
       highlightNav(LAB4_NAV[section] || "l4-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "5") {
+      const need = !app.querySelector(".lab5");
+      if (need) {
+        render(viewLab5());
+        bindLab5();
+      }
+      highlightNav(LAB5_NAV[section] || "l5-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "6") {
+      const need = !app.querySelector(".lab6");
+      if (need) {
+        render(viewLab6());
+        bindLab6();
+      }
+      highlightNav(LAB6_NAV[section] || "l6-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "7") {
+      const need = !app.querySelector(".lab7");
+      if (need) {
+        render(viewLab7());
+        bindLab7();
+      }
+      highlightNav(LAB7_NAV[section] || "l7-home");
       scrollLab(section, need);
     } else if (page === "standard" && id) {
       const item = STANDARDS.find((s) => s.id === id);
@@ -142,10 +187,13 @@
       2: ["Зертхана №2", "№2 зертханалық жұмыс", `${LAB2.title} — №2 зертхана`],
       3: ["Зертхана №3", "№3 зертханалық жұмыс", `${LAB3.title} — №3 зертхана`],
       4: ["Зертхана №4", "№4 зертханалық жұмыс", `${LAB4.title} — №4 зертхана`],
+      5: ["Зертхана №5", "№5 зертханалық жұмыс", `${LAB5.title} — №5 зертхана`],
+      6: ["Зертхана №6", "№6 зертханалық жұмыс", `${LAB6.title} — №6 зертхана`],
+      7: ["Зертхана №7", "№7 зертханалық жұмыс", `${LAB7.title} — №7 зертхана`],
     };
     const [sub, note, title] = chrome[mode] || [
-      "6 зертхана",
-      "6 зертханалық жұмыс",
+      "10 зертхана",
+      "10 зертханалық жұмыс",
       `${COURSE.subject} — зертханалар`,
     ];
     if (logoSub) logoSub.textContent = sub;
@@ -189,7 +237,7 @@
         </div>
         <h3>${lab.title}</h3>
         <p class="lab-result"><span>Нәтиже</span>${lab.short}</p>
-        ${open ? `<span class="lab-go">Ашу <i>→</i></span>` : ""}`;
+        ${open ? `<span class="lab-go">Ашу <i>→</i></span>` : `<span class="lab-go">Кейін</span>`}`;
 
       if (open) {
         return `<a class="lab-card reveal" href="${href}" style="--accent:${lab.color};--d:${i * 0.07}s">${body}</a>`;
@@ -207,7 +255,7 @@
             <div class="meta-row reveal">
               <span><em>Автор</em>${COURSE.author}</span>
               <span><em>Нысан</em>${COURSE.campus}</span>
-              <span><em>Жұмыс</em>6 зертхана</span>
+              <span><em>Жұмыс</em>10 зертхана</span>
             </div>
             <p class="reveal" style="margin-top:1rem"><a class="btn btn-primary" href="campus.html">Кампус порталын ашу</a></p>
           </div>
@@ -216,7 +264,7 @@
               <span class="orbit-ring"></span>
               <span class="orbit-ring delay"></span>
               <div class="orbit-core">
-                <strong>06</strong>
+                <strong>10</strong>
                 <em>зертхана</em>
               </div>
             </div>
@@ -227,7 +275,7 @@
           <div class="block-head reveal">
             <p class="eyebrow">Мәзір</p>
             <h2>Зертханалық жұмыстар</h2>
-            <p>Курс Smart Campus сценарийі бойынша жүреді. №1, №2, №3 және №4 зертхана ашық.</p>
+            <p>Курс Smart Campus сценарийі бойынша жүреді. Мәзірде он зертханалық жұмыс.</p>
           </div>
           <div class="lab-grid">
             ${cards}
