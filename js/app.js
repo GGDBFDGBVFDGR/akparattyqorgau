@@ -9,7 +9,7 @@
   if (subjectEl) subjectEl.textContent = COURSE.subject;
   if (authorEl) authorEl.textContent = COURSE.author;
 
-  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4", 5: "#lab/5", 6: "#lab/6", 7: "#lab/7", 8: "#lab/8" };
+  const LAB_HREF = { 1: "#home", 2: "#lab/2", 3: "#lab/3", 4: "#lab/4", 5: "#lab/5", 6: "#lab/6", 7: "#lab/7", 8: "#lab/8", 9: "#lab/9", 10: "#lab/10" };
   const LAB2_NAV = {
     registry: "l2-registry",
     scale: "l2-scale",
@@ -60,6 +60,22 @@
     residual: "l8-residual",
     quiz: "l8-quiz",
   };
+  const LAB9_NAV = {
+    concepts: "l9-concepts",
+    registry: "l9-registry",
+    playbooks: "l9-playbooks",
+    roles: "l9-roles",
+    card: "l9-card",
+    quiz: "l9-quiz",
+  };
+  const LAB10_NAV = {
+    baseline: "l10-baseline",
+    requirements: "l10-requirements",
+    stand: "l10-stand",
+    tests: "l10-tests",
+    findings: "l10-findings",
+    quiz: "l10-quiz",
+  };
 
   function route() {
     const hash = location.hash.slice(1) || "labs";
@@ -70,7 +86,7 @@
       page === "quiz" ||
       page === "practice" ||
       homeAnchors.has(page);
-    const mode = page === "lab" && (id === "2" || id === "3" || id === "4" || id === "5" || id === "6" || id === "7" || id === "8") ? id : inLab1 ? "1" : "menu";
+    const mode = page === "lab" && (id === "2" || id === "3" || id === "4" || id === "5" || id === "6" || id === "7" || id === "8" || id === "9" || id === "10") ? id : inLab1 ? "1" : "menu";
 
     setChrome(mode);
 
@@ -133,6 +149,22 @@
         bindLab8();
       }
       highlightNav(LAB8_NAV[section] || "l8-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "9") {
+      const need = !app.querySelector(".lab9");
+      if (need) {
+        render(viewLab9());
+        bindLab9();
+      }
+      highlightNav(LAB9_NAV[section] || "l9-home");
+      scrollLab(section, need);
+    } else if (page === "lab" && id === "10") {
+      const need = !app.querySelector(".lab10");
+      if (need) {
+        render(viewLab10());
+        bindLab10();
+      }
+      highlightNav(LAB10_NAV[section] || "l10-home");
       scrollLab(section, need);
     } else if (page === "standard" && id) {
       const item = STANDARDS.find((s) => s.id === id);
@@ -207,6 +239,8 @@
       6: ["Зертхана №6", "№6 зертханалық жұмыс", `${LAB6.title} — №6 зертхана`],
       7: ["Зертхана №7", "№7 зертханалық жұмыс", `${LAB7.title} — №7 зертхана`],
       8: ["Зертхана №8", "№8 зертханалық жұмыс", `${LAB8.title} — №8 зертхана`],
+      9: ["Зертхана №9", "№9 зертханалық жұмыс", `${LAB9.title} — №9 зертхана`],
+      10: ["Зертхана №10", "№10 зертханалық жұмыс", `${LAB10.title} — №10 зертхана`],
     };
     const [sub, note, title] = chrome[mode] || [
       "10 зертхана",

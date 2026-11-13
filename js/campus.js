@@ -13,11 +13,13 @@
     guard: "Күзет",
     auditor: "Аудитор",
     secadmin: "Қауіпсіздік әкімшісі",
-    dean: "Декан, оқытушы",
+    dean: "Декан",
+    dba: "Дерекқор әкімшісі",
+    building: "Ғимарат әкімшісі",
+    sysadmin: "Жүйелік әкімші",
   };
 
   const STATUSES = ["Оқуда", "Академиялық демалыс", "Оқудан шығарылды", "Түлек"];
-  const DOORS = ["Бас кіреберіс", "Кітапхана", "Зертхана 314", "Жатақхана", "Асхана", "Спорт кешені"];
   const PLACES = [
     {
       id: "lib",
@@ -339,6 +341,32 @@
     ];
   }
 
+  function defaultPapers(now) {
+    const at = now || Date.now();
+    return [
+      {
+        id: "d1",
+        kind: "doc",
+        title: "Академиялық демалыс анықтамасы",
+        text: "Ауез Муханға академиялық демалыс анықтамасы.",
+        authorName: "Молдабай Мэлс",
+        state: "wait",
+        at: at - 86400_000,
+      },
+      {
+        id: "d2",
+        kind: "event",
+        title: "Кампус жүгіруі",
+        text: "Спорт кешенінде кампус жүгіруі.",
+        place: "Спорт кешені",
+        when: "Сенбі · 09:00",
+        authorName: "Молдабай Мэлс",
+        state: "wait",
+        at: at - 3600_000,
+      },
+    ];
+  }
+
   function defaultBooks() {
     return [
       { id: "b1", title: "Ақпараттық қауіпсіздік негіздері", author: "Оқу құралы", shelf: "АҚ-12", copies: 4 },
@@ -373,6 +401,9 @@
     ["shaken", "Шәкен Нұрай", "student"],
     ["kuanysh", "Шодыров Куаныш", "student"],
     ["akpan", "Ғани Ақпан", "student"],
+    ["dba", "Дерекқор әкімшісі", "dba"],
+    ["building", "Ғимарат әкімшісі", "building"],
+    ["sysadmin", "Жүйелік әкімші", "sysadmin"],
   ];
 
   function seed() {
@@ -411,12 +442,15 @@
       grades,
       books: defaultBooks(),
       news: defaultNews(now),
+      papers: defaultPapers(now),
       loans: [],
-      passes: [
-        { id: "p1", card: students[0].card, door: "Бас кіреберіс", result: "Өтті", at: now - 3600_000, author: guard.name },
-        { id: "p2", card: students[2].card, door: "Кітапхана", result: "Бас тартылды", at: now - 7200_000, author: guard.name },
-      ],
       pending: [],
+      backup: { copies: [], restores: [] },
+      dbms: CampusDbms.initial(now),
+      acs: CampusAcs.initial([
+        { id: "p1", card: students[0].card, door: "Бас кіреберіс", result: "Өтті", why: "Ереже сәйкес", at: now - 3600_000, author: guard.name },
+        { id: "p2", card: students[2].card, door: "Кітапхана", result: "Бас тартылды", why: "Бұл мәртебеге есік жабық", at: now - 7200_000, author: guard.name },
+      ]),
       audit: [
         {
           id: "a0",
@@ -453,6 +487,31 @@
           saved.news = defaultNews();
           patched = true;
         }
+        if (!saved.papers) {
+          saved.papers = defaultPapers();
+          patched = true;
+        }
+        if (!saved.users?.some((u) => u.login === "dba")) {
+          saved.users = saved.users || [];
+          saved.users.push({ id: "u-dba", login: "dba", name: "Дерекқор әкімшісі", role: "dba" });
+          patched = true;
+        }
+        if (!saved.users?.some((u) => u.login === "building")) {
+          saved.users = saved.users || [];
+          saved.users.push({ id: "u-building", login: "building", name: "Ғимарат әкімшісі", role: "building" });
+          patched = true;
+        }
+        if (!saved.users?.some((u) => u.login === "sysadmin")) {
+          saved.users = saved.users || [];
+          saved.users.push({ id: "u-sysadmin", login: "sysadmin", name: "Жүйелік әкімші", role: "sysadmin" });
+          patched = true;
+        }
+        if (!saved.backup) {
+          saved.backup = { copies: [], restores: [] };
+          patched = true;
+        }
+        if (CampusDbms.patch(saved)) patched = true;
+        if (CampusAcs.patch(saved)) patched = true;
         if (patched) sessionStorage.setItem(STORE, JSON.stringify(saved));
         return saved;
       }
@@ -532,6 +591,23 @@
 
   function navFor(role) {
     const items = [{ href: "#home", id: "home", label: "Басты" }];
+    if (role === "dba") {
+      items.push({ href: "#dbms", id: "dbms", label: "ДҚБЖ" });
+      return items;
+    }
+    if (role === "building") {
+      items.push({ href: "#acs", id: "acs", label: "ACS" });
+      return items;
+    }
+    if (role === "sysadmin") {
+      items.push({ href: "#backup", id: "backup", label: "Көшірме" });
+      return items;
+    }
+    if (role === "dean") {
+      items.push({ href: "#sign", id: "sign", label: "Құжат" });
+      items.push({ href: "#events", id: "events", label: "Іс-шара" });
+      return items;
+    }
     if (role === "student") {
       items.push(
         { href: "#profile", id: "profile", label: "Жеке кабинет" },
@@ -539,17 +615,23 @@
         { href: "#pass", id: "pass", label: "Кампус картасы" }
       );
     }
-    if (role === "teacher" || role === "dean") items.push({ href: "#grades", id: "grades", label: "Баға қою" });
+    if (role === "teacher") items.push({ href: "#grades", id: "grades", label: "Баға қою" });
     if (role === "registrar") {
       items.push(
         { href: "#registry", id: "registry", label: "Тіркеу" },
         { href: "#newsdesk", id: "newsdesk", label: "Жаңалықтар" }
       );
     }
-    if (role === "head" || role === "dean") items.push({ href: "#approvals", id: "approvals", label: "Бекіту" });
-    if (role === "guard") items.push({ href: "#acs", id: "acs", label: "Өткізу журналы" });
-    if (role === "auditor" || role === "secadmin") items.push({ href: "#journal", id: "journal", label: "Оқиға журналы" });
-    if (role === "secadmin") items.push({ href: "#accounts", id: "accounts", label: "Тіркелгілер" });
+    if (role === "head") items.push({ href: "#approvals", id: "approvals", label: "Бекіту" });
+    if (role === "guard") items.push({ href: "#acs", id: "acs", label: "ACS" });
+    if (role === "auditor" || role === "secadmin") {
+      items.push({ href: "#journal", id: "journal", label: "Оқиға журналы" });
+      items.push({ href: "#acs", id: "acs", label: "ACS" });
+    }
+    if (role === "secadmin") {
+      items.push({ href: "#accounts", id: "accounts", label: "Тіркелгілер" });
+      items.push({ href: "#restore", id: "restore", label: "Қалпына келтіру" });
+    }
     items.push(
       { href: "#campus", id: "campus", label: "Кампус" },
       { href: "#library", id: "library", label: "Кітапхана" }
@@ -644,6 +726,7 @@
             <a href="#about">Жоба</a>
             <a href="#grounds">Кампус</a>
             <a href="#news">Жаңалықтар</a>
+            <a href="#meetings">Іс-шара</a>
             <a href="#contacts">Байланыс</a>
             <a href="index.html">Зертханалар</a>
           </nav>
@@ -686,6 +769,14 @@
                 <span class="place-more">Толығырақ</span>
               </button>`
             ).join("")}
+          </div>
+        </section>
+
+        <section class="site-block" id="meetings">
+          <h2>Іс-шара</h2>
+          <p>Декан қол қойған іс-шара ғана осында тұрады.</p>
+          <div class="news-grid">
+            ${publishedEvents()}
           </div>
         </section>
 
@@ -741,7 +832,7 @@
           <div class="login-copy">
             <small>Жоғары оқу орны</small>
             <h1>Smart Campus</h1>
-            <p>Студент өз жазбасын көреді. Тіркеуші мәртебе жазады, бөлім басшысы бекітеді. Күзет өткізу журналын толтырады, өшірмейді.</p>
+            <p>Студент өз жазбасын көреді. Тіркеуші мәртебе жазады, бөлім басшысы бекітеді. Күзет өткізу журналын толтырады, өшірмейді. Дерекқор әкімшісі құрылымды көреді, жолды ашпайды. ACS ережесін бір адам жазады, екіншісі бекітеді.</p>
             <div class="demo-list">${demos}</div>
           </div>
           <form class="login-form form" id="login-form">
@@ -780,6 +871,34 @@
         <div class="stat"><em>Бекіту күтуде</em><strong>${waiting}</strong></div>
         <div class="stat"><em>Тоқтатылған әрекет</em><strong>${denied}</strong></div>
       </div>`;
+    const hint = {
+      student: student
+        ? `Сіздің мәртебеңіз: ${student.status}. Аты-жөні мен байланысты өзгерту үшін өтінім жіберіңіз.`
+        : "",
+      teacher: "Жаңа баға бірден жазылады. Түзетуді бөлім басшысы бекітеді. ЖСН бұл экранда жоқ.",
+      dean: "Сабақ бермейсіз. Құжатқа қол қоясыз және іс-шара өткізесіз.",
+      registrar: "Байланысты жазасыз, бірақ өзіңіз бекітпейсіз. Жою құқығы жоқ. Мәртебені бөлім басшысы бекітеді.",
+      head: "Жазбаны өзіңіз жазбайсыз. Тіркеуші мен оқытушы жазған өзгерісті бекітесіз.",
+      guard: "Есік нәтижесін ереже шешеді. Журнал жолы өшпейді. Ережені екінші адам бекітеді.",
+      auditor: "Журналды оқуға болады. Жазу және бекіту бұл рөлде жоқ.",
+      secadmin: "Тіркелгі мен ACS журналын оқисыз. Қалпына келтіруді бекітесіз, файлды ашпайсыз.",
+      sysadmin: "Көшірме жасайсыз. Қойма өрісін оқымайсыз. Қалпына келтіруді өзіңіз бекітпейсіз.",
+      dba: "ДҚБЖ құрылымын, қызметтік қосылымды және қалпына келтіру нүктесін көресіз. Жеке жолды ашпайсыз.",
+      building: "ACS ережесі мен карта күйі сізде. Ережені күзет бекітеді. Журнал жолын өшіре алмайсыз.",
+    }[session.role];
+    if (session.role === "dba" || session.role === "building" || session.role === "sysadmin" || session.role === "dean") {
+      const extra = session.role === "dba"
+        ? `Қалпына келтіру нүктесі: ${(db.dbms?.points || []).length}. Орналасқан жері: ДҚ сервері, сервер бөлмесі.`
+        : session.role === "building"
+          ? "Орналасқан жері: ACS сервері және есік контроллерлері. Контроллерлер VLAN 30-да."
+          : session.role === "sysadmin"
+            ? "Көшірме файлының іші бұл экранда жоқ. Бекіту қауіпсіздік әкімшісінде."
+            : "Қол қойылмаған құжат күшінде емес. Баға мен тіркеу бұл бөлмеде жоқ.";
+      return shell(
+        "Басты бет",
+        `${cards}<section class="panel"><h2>Сіздің контур</h2><p>${esc(hint)}</p><p class="note">${esc(extra)}</p></section>`
+      );
+    }
     const schedule = `
       <section class="panel">
         <h2>Бүгінгі сабақ</h2>
@@ -788,18 +907,6 @@
           <div class="lesson"><div><strong>Желілік технологиялар</strong><em>Кушенов Рамазан</em></div><em>12:00 · 210</em></div>
         </div>
       </section>`;
-    const hint = {
-      student: student
-        ? `Сіздің мәртебеңіз: ${student.status}. Аты-жөні мен байланысты өзгерту үшін өтінім жіберіңіз.`
-        : "",
-      teacher: "Баға бірден жазылады және студентке сол сәтте көрінеді.",
-      dean: "Сіз бағаны бірден қоясыз және мәртебе өтінімін бекітесіз.",
-      registrar: "Студенттің дерек өтінімін және жаңалықты сіз қабылдайсыз. Оқу мәртебесі деканды немесе бөлім басшысын күтеді.",
-      head: "Бекітілмеген жазба ресми емес. Жазған адам мен бекіткен адам әртүрлі болуы керек.",
-      guard: "Өткізу журналына жаңа жол қосылады. Өшіру батырмасы жоқ.",
-      auditor: "Журналды оқуға болады. Жазу және бекіту бұл рөлде жоқ.",
-      secadmin: "Тіркелгілер мен MFA күйі. Өзіңізге қосымша рөл беру жоқ.",
-    }[session.role];
     return shell(
       "Басты бет",
       `${cards}<div class="grid-2">${schedule}<section class="panel"><h2>Сіздің контур</h2><p>${esc(hint)}</p></section></div>`
@@ -815,13 +922,13 @@
     const s = result.student;
     const own = session.role === "student" && session.studentId === s.id;
     const requests = db.pending
-      .filter((p) => p.kind === "profile" && p.studentId === s.id)
+      .filter((p) => (p.kind === "ask" || p.kind === "profile") && p.studentId === s.id)
       .map(
         (p) => `<tr>
           <td>${esc(p.nameFrom)} → ${esc(p.nameTo)}</td>
           <td>${esc(p.phoneFrom)} → ${esc(p.phoneTo)}</td>
           <td>${esc(p.reason)}</td>
-          <td>${p.state === "wait" ? "Күтуде" : p.state === "ok" ? "Бекітілді" : "Қайтарылды"}</td>
+          <td>${p.state === "wait" ? "Күтуде" : p.state === "written" ? "Тіркеуші жазды" : p.state === "ok" ? "Бекітілді" : "Қайтарылды"}</td>
         </tr>`
       )
       .join("");
@@ -834,7 +941,7 @@
             <label><span>Себеп</span><textarea name="reason" required></textarea></label>
             <button class="btn btn-primary" type="submit">Өтінім жіберу</button>
           </form>
-          <p class="note">ЖСН, топ және мәртебе осы формадан өзгермейді. Өтінімді тіркеуші бекітеді.</p>
+          <p class="note">ЖСН, топ және мәртебе осы формадан өзгермейді. Тіркеуші жазады, бөлім басшысы бекітеді.</p>
         </section>
         <section class="panel">
           <h2>Менің өтінімдерім</h2>
@@ -878,10 +985,13 @@
         const grade = db.grades.find(
           (g) => g.studentId === s.id && g.course === "Ақпараттық қауіпсіздік негіздері"
         );
+        const waiting = db.pending.some(
+          (p) => p.kind === "grade" && p.studentId === s.id && p.state === "wait"
+        );
         return `<tr>
           <td>${esc(s.name)}</td>
           <td>${esc(s.group)}</td>
-          <td>${grade ? esc(grade.value) : "—"}</td>
+          <td>${grade ? esc(grade.value) : "—"}${waiting ? ` <span class="pill wait">түзету күтуде</span>` : ""}</td>
           <td>
             <form class="actions" data-grade="${esc(s.id)}">
               <input name="value" type="number" min="0" max="100" value="${grade ? esc(grade.value) : ""}" style="width:5.5rem" required>
@@ -894,7 +1004,7 @@
     return shell(
       "Баға қою",
       `<section class="panel">
-        <p style="margin-bottom:0.8rem;color:var(--muted)">Курс: Ақпараттық қауіпсіздік негіздері. Баға сақталған сәтте ресми болады. ЖСН бұл экранда жоқ.</p>
+        <p style="margin-bottom:0.8rem;color:var(--muted)">Курс: Ақпараттық қауіпсіздік негіздері. Жаңа баға бірден жазылады. Түзету бөлім басшысын күтеді. ЖСН бұл экранда жоқ.</p>
         <table><thead><tr><th>Студент</th><th>Топ</th><th>Баға</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </section>`
     );
@@ -913,20 +1023,19 @@
           <td>${esc(s.phone)}</td>
           <td>${esc(s.group)}</td>
           <td><span class="pill">${esc(s.status)}</span></td>
+          <td><button class="btn btn-ghost" type="button" data-deny-delete="${esc(s.id)}">Жою</button></td>
         </tr>`
       )
       .join("");
     const dataReqs = db.pending
-      .filter((p) => p.kind === "profile")
+      .filter((p) => p.kind === "ask" || p.kind === "profile")
       .map((p) => {
-        const buttons =
-          p.state === "wait"
-            ? `<div class="actions">
-                <button class="btn btn-primary" data-approve="${esc(p.id)}" type="button">Бекіту</button>
-                <button class="btn btn-ghost" data-reject="${esc(p.id)}" type="button">Қайтару</button>
-              </div>`
-            : p.state === "ok"
-              ? "Бекітілді"
+        const buttons = p.kind === "ask" && p.state === "wait"
+          ? `<button class="btn btn-primary" type="button" data-write="${esc(p.id)}">Жазу</button>`
+          : p.state === "wait"
+            ? "Бөлім басшысында"
+            : p.state === "ok" || p.state === "written"
+              ? "Жазылды"
               : "Қайтарылды";
         return `<tr>
           <td>${esc(studentById(p.studentId)?.name || p.nameFrom)}</td>
@@ -971,21 +1080,44 @@
             <label><span>Себеп</span><textarea name="reason" required></textarea></label>
             <button class="btn btn-primary" type="submit">Өтінім жіберу</button>
           </form>
-          <p class="note">Бекітілмеген өзгеріс ресми жазбаны ауыстырмайды.</p>
+          <p class="note">Бекітілмеген өзгеріс ресми жазбаны ауыстырмайды. Өз өтініміңізді өзіңіз бекітпейсіз.</p>
         </section>
-        <section class="panel"><table><thead><tr><th>Студент</th><th>ЖСН</th><th>Байланыс</th><th>Топ</th><th>Мәртебе</th></tr></thead><tbody>${rows}</tbody></table></section>
+        <section class="panel">
+          <h2>Байланысты өзгерту</h2>
+          <form class="form" id="contact-form">
+            <label><span>Студент</span><select name="student">${students}</select></label>
+            <label><span>Жаңа байланыс</span><input name="phone" required></label>
+            <label><span>Себеп</span><textarea name="reason" required></textarea></label>
+            <button class="btn btn-primary" type="submit">Жазу</button>
+          </form>
+          <p class="note">Бұл жазба. Бекіту бөлім басшысында. Жою бұл рөлде жоқ.</p>
+        </section>
+        <section class="panel"><table><thead><tr><th>Студент</th><th>ЖСН</th><th>Байланыс</th><th>Топ</th><th>Мәртебе</th><th></th></tr></thead><tbody>${rows}</tbody></table></section>
         <section class="panel"><h2>Студент деректерінің өтінімі</h2><table><thead><tr><th>Студент</th><th>Өзгеріс</th><th>Себеп</th><th></th></tr></thead><tbody>${dataReqs || "<tr><td colspan='4'>Әлі жоқ</td></tr>"}</tbody></table></section>
         <section class="panel"><h2>Мәртебе өтінімдері</h2><table><thead><tr><th>Студент</th><th>Өзгеріс</th><th>Себеп</th><th>Күй</th></tr></thead><tbody>${mine || "<tr><td colspan='4'>Әлі жоқ</td></tr>"}</tbody></table></section>
+        <section class="panel">
+          <h2>Деканға құжат</h2>
+          <form class="form" id="paper-form">
+            <label><span>Түрі</span><select name="kind"><option value="doc">Анықтама</option><option value="order">Бұйрық</option><option value="event">Іс-шара</option></select></label>
+            <label><span>Тақырып</span><input name="title" required maxlength="80"></label>
+            <label><span>Мәтін</span><textarea name="text" required></textarea></label>
+            <label><span>Орын</span><input name="place" placeholder="Іс-шара болса"></label>
+            <label><span>Уақыт</span><input name="when" placeholder="Іс-шара болса"></label>
+            <button class="btn btn-primary" type="submit">Қол қоюға жіберу</button>
+          </form>
+          <p class="note">Декан қол қоймайынша құжат күшінде емес. Бағаға бұл форма жоламайды.</p>
+        </section>
       </div>`
     );
   }
 
   function viewApprovals() {
     const rows = db.pending
-      .filter((p) => p.kind !== "profile")
+      .filter((p) => p.kind === "profile" || p.kind === "status" || p.kind === "grade")
       .map((p) => {
-        const who = p.kind === "status" ? studentById(p.studentId)?.name : `${studentById(p.studentId)?.name} · баға`;
-        const change = p.kind === "status" ? `${p.from} → ${p.to}` : `${p.from} → ${p.to}`;
+        const name = studentById(p.studentId)?.name;
+        const who = p.kind === "status" ? name : p.kind === "grade" ? `${name} · баға` : `${name} · дерек`;
+        const change = p.kind === "profile" ? `${p.phoneFrom} → ${p.phoneTo}` : `${p.from} → ${p.to}`;
         const buttons =
           p.state === "wait"
             ? `<div class="actions">
@@ -1004,43 +1136,17 @@
     );
   }
 
-  function viewAcs() {
-    const cards = db.students
-      .map((s) => `<option value="${esc(s.card)}">${esc(s.name)} · ${esc(s.card)}</option>`)
-      .join("");
-    const doors = DOORS.map((d) => `<option>${esc(d)}</option>`).join("");
-    const rows = db.passes
-      .map(
-        (p) => `<tr><td>${fmt(p.at)}</td><td>${esc(p.card)}</td><td>${esc(p.door)}</td><td>${esc(p.result)}</td><td>${esc(p.author)}</td></tr>`
-      )
-      .join("");
-    return shell(
-      "Өткізу журналы",
-      `<div class="stack">
-        <section class="panel">
-          <form class="form" id="pass-form">
-            <label><span>Карта</span><select name="card">${cards}</select></label>
-            <label><span>Есік</span><select name="door">${doors}</select></label>
-            <label><span>Нәтиже</span><select name="result"><option>Өтті</option><option>Бас тартылды</option></select></label>
-            <button class="btn btn-primary" type="submit">Журналға жазу</button>
-          </form>
-          <p class="note">Күзет журналды толтырады. Жолды өшіру бұл рөлде жоқ.</p>
-        </section>
-        <section class="panel"><table><thead><tr><th>Уақыт</th><th>Карта</th><th>Есік</th><th>Нәтиже</th><th>Автор</th></tr></thead><tbody>${rows}</tbody></table></section>
-      </div>`
-    );
-  }
 
   function viewPass() {
     const student = studentById(session.studentId);
-    const rows = db.passes
-      .filter((p) => p.card === student.card)
+    const status = CampusAcs.cardStatus(db, student.card);
+    const rows = CampusAcs.passesFor(db, student.card)
       .map((p) => `<tr><td>${fmt(p.at)}</td><td>${esc(p.door)}</td><td>${esc(p.result)}</td></tr>`)
       .join("");
     return shell(
       "Кампус картасы",
       `<section class="panel">
-        <dl class="field-row"><dt>Карта</dt><dd>${esc(student.card)}</dd><dt>Күй</dt><dd><span class="pill ok">Белсенді</span></dd></dl>
+        <dl class="field-row"><dt>Карта</dt><dd>${esc(student.card)}</dd><dt>Күй</dt><dd><span class="pill ${status === "Бұғат" ? "stop" : "ok"}">${esc(status)}</span></dd></dl>
         <table><thead><tr><th>Уақыт</th><th>Есік</th><th>Нәтиже</th></tr></thead><tbody>${rows || "<tr><td colspan='3'>Жазба жоқ</td></tr>"}</tbody></table>
       </section>`
     );
@@ -1127,6 +1233,20 @@
     );
   }
 
+  function publishedEvents() {
+    const items = (db.papers || []).filter((item) => item.kind === "event" && item.state === "signed");
+    if (!items.length) return `<p>Қол қойылған іс-шара әзірге жоқ.</p>`;
+    return items
+      .map(
+        (item) => `<article class="news-card">
+          <h3>${esc(item.title)}</h3>
+          <p>${esc(item.text)}</p>
+          <p class="news-meta">${esc(item.place || "Кампус")} · ${esc(item.when || "")}</p>
+        </article>`
+      )
+      .join("");
+  }
+
   function publishedNews() {
     const items = (db.news || []).filter((n) => n.state === "ok");
     if (!items.length) return `<p>Әзірге жарияланған жаңалық жоқ.</p>`;
@@ -1184,10 +1304,127 @@
     );
   }
 
+
+  function viewBackup() {
+    const copies = (db.backup?.copies || [])
+      .map((item) => `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>Іші жабық</td></tr>`)
+      .join("");
+    const restores = (db.backup?.restores || [])
+      .map((item) => `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>${item.state === "wait" ? "Қауіпсіздік әкімшісінде" : item.state === "ok" ? "Бекітілді" : "Қайтарылды"}</td></tr>`)
+      .join("");
+    const options = (db.backup?.copies || [])
+      .map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`)
+      .join("");
+    return shell(
+      "Көшірме",
+      `<div class="stack">
+        <section class="panel">
+          <h2>Көшірме жасау</h2>
+          <button class="btn btn-primary" type="button" id="backup-make">Көшірме жұмысын іске қосу</button>
+          <p class="note">Файлдың іші ашылмайды. ЖСН мен баға бұл экранда жоқ.</p>
+          <table><thead><tr><th>Уақыт</th><th>Белгі</th><th>Ішінде</th></tr></thead><tbody>${copies || "<tr><td colspan='3'>Әлі жоқ</td></tr>"}</tbody></table>
+        </section>
+        <section class="panel">
+          <h2>Қалпына келтіруді сұрау</h2>
+          <form class="form" id="backup-restore">
+            <label><span>Көшірме</span><select name="copy" ${options ? "" : "disabled"}>${options || "<option>Көшірме жоқ</option>"}</select></label>
+            <button class="btn btn-ghost" type="submit">Сұрау</button>
+            <button class="btn btn-ghost" type="button" id="backup-self">Өзім бекіту</button>
+          </form>
+          <p class="note">Бекіту қауіпсіздік әкімшісінде. Жүйе әкімшісі өз сұрауын бекітпейді.</p>
+          <table><thead><tr><th>Уақыт</th><th>Көшірме</th><th>Күй</th></tr></thead><tbody>${restores || "<tr><td colspan='3'>Әлі жоқ</td></tr>"}</tbody></table>
+        </section>
+        <section class="panel">
+          <button class="btn btn-ghost" type="button" id="backup-read">Қойма өрісін оқу</button>
+        </section>
+      </div>`
+    );
+  }
+
+  function viewRestore() {
+    const rows = (db.backup?.restores || [])
+      .map((item) => {
+        const buttons = item.state === "wait"
+          ? `<div class="actions"><button class="btn btn-primary" type="button" data-restore="${esc(item.id)}" data-state="ok">Бекіту</button><button class="btn btn-ghost" type="button" data-restore="${esc(item.id)}" data-state="no">Қайтару</button></div>`
+          : item.state === "ok" ? "Бекітілді" : "Қайтарылды";
+        return `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>${esc(item.authorName)}</td><td>Іші жабық</td><td>${buttons}</td></tr>`;
+      })
+      .join("");
+    return shell(
+      "Қалпына келтіру",
+      `<section class="panel">
+        <p class="note">Қауіпсіздік әкімшісі қалпына келтіруді бекітеді. Көшірме файлын ашпайды, қойма өрісін оқымайды.</p>
+        <table><thead><tr><th>Уақыт</th><th>Көшірме</th><th>Автор</th><th>Ішінде</th><th></th></tr></thead><tbody>${rows || "<tr><td colspan='5'>Кезек бос</td></tr>"}</tbody></table>
+      </section>`
+    );
+  }
+
+  function paperKind(kind) {
+    if (kind === "event") return "Іс-шара";
+    if (kind === "order") return "Бұйрық";
+    return "Анықтама";
+  }
+
+  function paperRows(items, signing) {
+    return items
+      .map((item) => {
+        const buttons = signing && item.state === "wait"
+          ? `<div class="actions"><button class="btn btn-primary" type="button" data-sign="${esc(item.id)}">Қол қою</button><button class="btn btn-ghost" type="button" data-sign-no="${esc(item.id)}">Қайтару</button></div>`
+          : item.state === "signed"
+            ? "Қол қойылды"
+            : item.state === "wait"
+              ? "Деканда"
+              : "Қайтарылды";
+        return `<tr>
+          <td>${esc(paperKind(item.kind))}</td>
+          <td>${esc(item.title)}</td>
+          <td>${esc(item.text)}</td>
+          <td>${esc(item.authorName)}</td>
+          <td>${buttons}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  function viewSign() {
+    const rows = paperRows(db.papers || [], true);
+    return shell(
+      "Құжат",
+      `<section class="panel">
+        <p class="note">Декан қол қояды. Сабақ бермейді, баға қоймайды, тіркеу жазбайды.</p>
+        <table><thead><tr><th>Түрі</th><th>Тақырып</th><th>Мәтін</th><th>Кім жіберді</th><th></th></tr></thead><tbody>${rows || "<tr><td colspan='5'>Құжат жоқ</td></tr>"}</tbody></table>
+      </section>`
+    );
+  }
+
+  function viewEvents() {
+    const places = PLACES.map((place) => `<option>${esc(place.name)}</option>`).join("");
+    const held = (db.papers || []).filter((item) => item.kind === "event");
+    return shell(
+      "Іс-шара",
+      `<div class="stack">
+        <section class="panel">
+          <h2>Іс-шара өткізу</h2>
+          <form class="form" id="event-form">
+            <label><span>Тақырып</span><input name="title" required maxlength="80"></label>
+            <label><span>Орын</span><select name="place">${places}</select></label>
+            <label><span>Уақыт</span><input name="when" required placeholder="Сенбі · 09:00"></label>
+            <label><span>Мәтін</span><textarea name="text" required></textarea></label>
+            <button class="btn btn-primary" type="submit">Өткізу</button>
+          </form>
+          <p class="note">Деканның өзі өткізген іс-шара сол сәтте қол қойылған болып сайтта көрінеді.</p>
+        </section>
+        <section class="panel">
+          <table><thead><tr><th>Түрі</th><th>Тақырып</th><th>Мәтін</th><th>Кім жіберді</th><th></th></tr></thead><tbody>${paperRows(held, true) || "<tr><td colspan='5'>Әлі жоқ</td></tr>"}</tbody></table>
+        </section>
+      </div>`
+    );
+  }
+
   function render() {
     const app = document.getElementById("app");
     const { page, id } = route();
-    const publicPage = new Set(["site", "about", "grounds", "news", "contacts"]);
+    const publicPage = new Set(["site", "about", "grounds", "news", "meetings", "contacts"]);
     if (publicPage.has(page) || (!session && page !== "login")) {
       app.innerHTML = viewSite();
       bindSite();
@@ -1220,13 +1457,18 @@
       grades: () => viewGrades(),
       registry: () => viewRegistry(),
       approvals: () => viewApprovals(),
-      acs: () => viewAcs(),
+      acs: () => CampusAcs.view(systemCtx()),
       pass: () => viewPass(),
       campus: () => viewCampus(),
       library: () => viewLibrary(),
       journal: () => viewJournal(),
       newsdesk: () => viewNewsdesk(),
+      sign: () => viewSign(),
+      events: () => viewEvents(),
       accounts: () => viewAccounts(),
+      backup: () => viewBackup(),
+      restore: () => viewRestore(),
+      dbms: () => CampusDbms.view(systemCtx()),
     };
     app.innerHTML = (views[page] || viewHome)();
     bindApp();
@@ -1382,14 +1624,14 @@
         render();
         return;
       }
-      if (db.pending.some((p) => p.kind === "profile" && p.studentId === student.id && p.state === "wait")) {
+      if (db.pending.some((p) => p.kind === "ask" && p.studentId === student.id && p.state === "wait")) {
         flash = { type: "warn", text: "Ашық өтінім бар. Тіркеуші жауабын күтіңіз." };
         render();
         return;
       }
       db.pending.unshift({
         id: "q" + Date.now(),
-        kind: "profile",
+        kind: "ask",
         studentId: student.id,
         nameFrom: student.name,
         nameTo: name,
@@ -1404,11 +1646,12 @@
       });
       log(session, "Дерек өтінімі", `${student.name}: байланыс немесе аты-жөні`);
       saveDb();
-      flash = { type: "ok", text: "Өтінім тіркеушіге жіберілді. Бекітілгенше дерек өзгермейді." };
+      flash = { type: "ok", text: "Өтінім тіркеушіге жіберілді. Ол жазады, бөлім басшысы бекітеді." };
       render();
     });
     document.getElementById("status-form")?.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (session.role !== "registrar") return;
       const data = new FormData(e.target);
       const student = studentById(data.get("student"));
       const next = data.get("status");
@@ -1444,6 +1687,7 @@
         const course = "Ақпараттық қауіпсіздік негіздері";
         const current = db.grades.find((g) => g.studentId === studentId && g.course === course);
         const student = studentById(studentId);
+        if (session.role !== "teacher") return;
         if (!current) {
           db.grades.push({ id: "g" + Date.now(), studentId, course, value, state: "official" });
           log(session, "Баға қойылды", `${student.name}: ${value}`);
@@ -1457,12 +1701,26 @@
           render();
           return;
         }
-        const previous = current.value;
-        current.value = value;
-        current.state = "official";
-        log(session, "Баға қойылды", `${student.name}: ${previous} → ${value}`);
+        if (db.pending.some((p) => p.kind === "grade" && p.studentId === studentId && p.course === course && p.state === "wait")) {
+          flash = { type: "warn", text: "Бұл түзету бөлім басшысында." };
+          render();
+          return;
+        }
+        db.pending.unshift({
+          id: "q" + Date.now(),
+          kind: "grade",
+          studentId,
+          course,
+          from: current.value,
+          to: value,
+          reason: "Баға түзетуі",
+          authorId: session.id,
+          authorName: session.name,
+          state: "wait",
+        });
+        log(session, "Баға түзетуі", `${student.name}: ${current.value} → ${value}`);
         saveDb();
-        flash = { type: "ok", text: "Баға қойылды." };
+        flash = { type: "ok", text: "Түзету бөлім басшысына кетті. Ресми баға әзірге сол." };
         render();
       });
     });
@@ -1484,22 +1742,231 @@
     document.querySelectorAll("[data-news-no]").forEach((btn) => {
       btn.addEventListener("click", () => decideNews(btn.dataset.newsNo, "no"));
     });
-    document.getElementById("pass-form")?.addEventListener("submit", (e) => {
+    document.getElementById("contact-form")?.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (session.role !== "registrar") return;
       const data = new FormData(e.target);
-      db.passes.unshift({
-        id: "p" + Date.now(),
-        card: data.get("card"),
-        door: data.get("door"),
-        result: data.get("result"),
-        at: Date.now(),
-        author: session.name,
+      const student = studentById(data.get("student"));
+      const phone = String(data.get("phone") || "").trim();
+      const reason = String(data.get("reason") || "").trim();
+      if (!student || !phone || !reason) return;
+      if (phone === student.phone) {
+        flash = { type: "warn", text: "Байланыс өзгермеген." };
+        render();
+        return;
+      }
+      db.pending.unshift({
+        id: "q" + Date.now(),
+        kind: "profile",
+        studentId: student.id,
+        nameFrom: student.name,
+        nameTo: student.name,
+        phoneFrom: student.phone,
+        phoneTo: phone,
+        from: student.phone,
+        to: phone,
+        reason,
+        authorId: session.id,
+        authorName: session.name,
+        state: "wait",
       });
-      log(session, "Өткізу жазбасы", `${data.get("card")} · ${data.get("door")} · ${data.get("result")}`);
+      log(session, "Байланыс жазылды", `${student.name}: ${student.phone} → ${phone}`);
       saveDb();
-      flash = { type: "ok", text: "Журналға жазылды." };
+      flash = { type: "ok", text: "Жазылды. Бекіту бөлім басшысында. Ресми байланыс әзірге сол." };
       render();
     });
+    document.querySelectorAll("[data-write]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (session.role !== "registrar") return;
+        const ask = db.pending.find((item) => item.id === btn.dataset.write && item.kind === "ask" && item.state === "wait");
+        if (!ask) return;
+        ask.state = "written";
+        db.pending.unshift({
+          id: "q" + Date.now(),
+          kind: "profile",
+          studentId: ask.studentId,
+          nameFrom: ask.nameFrom,
+          nameTo: ask.nameTo,
+          phoneFrom: ask.phoneFrom,
+          phoneTo: ask.phoneTo,
+          from: ask.phoneFrom,
+          to: ask.phoneTo,
+          reason: ask.reason,
+          authorId: session.id,
+          authorName: session.name,
+          state: "wait",
+        });
+        log(session, "Дерек жазылды", `${ask.nameFrom}: байланыс немесе аты-жөні`);
+        saveDb();
+        flash = { type: "ok", text: "Жазылды. Бекіту бөлім басшысында." };
+        render();
+      });
+    });
+    document.querySelectorAll("[data-deny-delete]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const student = studentById(btn.dataset.denyDelete);
+        log(session, "Жою тоқтатылды", student?.name || "жазба");
+        flash = { type: "bad", text: "Жою құқығы жоқ." };
+        render();
+      });
+    });
+    document.getElementById("backup-make")?.addEventListener("click", () => {
+      if (session.role !== "sysadmin") return;
+      db.backup = db.backup || { copies: [], restores: [] };
+      const label = "көшірме-" + new Date().toLocaleString("kk-KZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      db.backup.copies.unshift({ id: "b" + Date.now(), at: Date.now(), label });
+      log(session, "Көшірме жасалды", label);
+      saveDb();
+      flash = { type: "ok", text: "Көшірме жасалды. Файл ашылмады." };
+      render();
+    });
+    document.getElementById("backup-restore")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (session.role !== "sysadmin") return;
+      const id = String(new FormData(e.target).get("copy") || "");
+      const copy = (db.backup?.copies || []).find((item) => item.id === id);
+      if (!copy) return;
+      db.backup.restores.unshift({
+        id: "r" + Date.now(),
+        copyId: copy.id,
+        label: copy.label,
+        authorId: session.id,
+        authorName: session.name,
+        state: "wait",
+        at: Date.now(),
+      });
+      log(session, "Қалпына келтіру сұралды", copy.label);
+      saveDb();
+      flash = { type: "ok", text: "Сұрау кетті. Бекіту қауіпсіздік әкімшісінде." };
+      render();
+    });
+    document.getElementById("backup-self")?.addEventListener("click", () => {
+      log(session, "Қалпына келтіру тоқтатылды", "Жүйе әкімшісі өз сұрауын бекітпейді");
+      flash = { type: "bad", text: "Өз сұрауыңызды өзіңіз бекітпейсіз. Бекіту қауіпсіздік әкімшісінде." };
+      render();
+    });
+    document.getElementById("backup-read")?.addEventListener("click", () => {
+      log(session, "Қойма оқуы тоқтатылды", "Жеке өріс ашылмады");
+      flash = { type: "bad", text: "Қойма өрісін оқу құқығы жоқ." };
+      render();
+    });
+    document.querySelectorAll("[data-restore]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (session.role !== "secadmin") return;
+        const item = (db.backup?.restores || []).find((row) => row.id === btn.dataset.restore);
+        if (!item || item.state !== "wait") return;
+        if (item.authorId === session.id) {
+          flash = { type: "bad", text: "Жазған адам бекітпейді." };
+          render();
+          return;
+        }
+        item.state = btn.dataset.state === "ok" ? "ok" : "no";
+        log(session, item.state === "ok" ? "Қалпына келтіру бекітілді" : "Қалпына келтіру қайтарылды", item.label);
+        saveDb();
+        flash = { type: "ok", text: item.state === "ok" ? "Бекітілді. Файл ашылмады." : "Сұрау қайтарылды." };
+        render();
+      });
+    });
+    document.getElementById("paper-form")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (session.role !== "registrar") return;
+      const data = new FormData(e.target);
+      const title = String(data.get("title") || "").trim();
+      const text = String(data.get("text") || "").trim();
+      const kind = String(data.get("kind") || "doc");
+      if (!title || !text) return;
+      db.papers = db.papers || [];
+      db.papers.unshift({
+        id: "d" + Date.now(),
+        kind: kind === "event" || kind === "order" ? kind : "doc",
+        title,
+        text,
+        place: String(data.get("place") || "").trim(),
+        when: String(data.get("when") || "").trim(),
+        authorName: session.name,
+        authorId: session.id,
+        state: "wait",
+        at: Date.now(),
+      });
+      log(session, "Құжат жіберілді", title);
+      saveDb();
+      flash = { type: "ok", text: "Деканға кетті. Қол қойылмайынша күшінде емес." };
+      render();
+    });
+    document.getElementById("event-form")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (session.role !== "dean") return;
+      const data = new FormData(e.target);
+      const title = String(data.get("title") || "").trim();
+      const text = String(data.get("text") || "").trim();
+      const place = String(data.get("place") || "").trim();
+      const when = String(data.get("when") || "").trim();
+      if (!title || !text || !when) return;
+      db.papers = db.papers || [];
+      db.papers.unshift({
+        id: "d" + Date.now(),
+        kind: "event",
+        title,
+        text,
+        place,
+        when,
+        authorName: session.name,
+        authorId: session.id,
+        state: "signed",
+        at: Date.now(),
+      });
+      log(session, "Іс-шара өткізілді", `${title} · ${place} · ${when}`);
+      saveDb();
+      flash = { type: "ok", text: "Іс-шара қол қойылды және сайтта көрінеді." };
+      render();
+    });
+    document.querySelectorAll("[data-sign]").forEach((btn) => {
+      btn.addEventListener("click", () => signPaper(btn.dataset.sign, "signed"));
+    });
+    document.querySelectorAll("[data-sign-no]").forEach((btn) => {
+      btn.addEventListener("click", () => signPaper(btn.dataset.signNo, "no"));
+    });
+    const systems = systemCtx();
+    CampusDbms.bind(systems);
+    CampusAcs.bind(systems);
+  }
+
+  function systemCtx() {
+    return {
+      db,
+      session,
+      esc,
+      shell,
+      fmt,
+      log,
+      save: saveDb,
+      render,
+      note(type, text) {
+        flash = { type, text };
+      },
+      holders() {
+        return db.students.map((student) => ({
+          name: student.name,
+          card: student.card,
+          status: student.status,
+        }));
+      },
+      counts() {
+        return { students: db.students.length, grades: db.grades.length };
+      },
+    };
+  }
+
+
+  function signPaper(id, state) {
+    if (session.role !== "dean") return;
+    const item = (db.papers || []).find((paper) => paper.id === id);
+    if (!item || item.state !== "wait") return;
+    item.state = state;
+    log(session, state === "signed" ? "Қол қойылды" : "Құжат қайтарылды", item.title);
+    saveDb();
+    flash = { type: "ok", text: state === "signed" ? "Қол қойылды." : "Құжат қайтарылды." };
+    render();
   }
 
   function borrowBook(bookId) {
@@ -1549,9 +2016,7 @@
       render();
       return;
     }
-    const allowed =
-      (item.kind === "profile" && session.role === "registrar") ||
-      (item.kind !== "profile" && (session.role === "head" || session.role === "dean"));
+    const allowed = session.role === "head" && (item.kind === "profile" || item.kind === "status" || item.kind === "grade");
     if (!allowed) {
       log(session, "Бекіту тоқтатылды", "Бекіту құқығы жоқ");
       flash = { type: "bad", text: "Бұл өтінімді бекіту сіздің рөліңізде жоқ." };
