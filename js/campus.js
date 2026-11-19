@@ -20,11 +20,15 @@
   };
 
   const STATUSES = ["Оқуда", "Академиялық демалыс", "Оқудан шығарылды", "Түлек"];
+  const LESSONS = [
+    { course: "Ақпараттық қауіпсіздік негіздері", teacher: "Кушенов Рамазан", when: "10:00", room: "314" },
+    { course: "Желілік технологиялар", teacher: "Кушенов Рамазан", when: "12:00", room: "210" },
+  ];
   const PLACES = [
     {
       id: "lib",
       name: "Кітапхана",
-      where: "1-ғимарат, 2-қабат",
+      where: "Бас корпус, 2-қабат",
       hours: "09:00–18:00",
       note: "Оқу залы және кітап беру. Порталдан кітапқа өтінім қалдыруға болады.",
       more: ["120 орын: тыныш аймақ және 4 адамдық топтық бөлме.", "Кітап 14 күнге беріледі, мерзімді порталда ұзартуға болады.", "Кіру үшін кампус картасы керек."],
@@ -32,7 +36,7 @@
     {
       id: "food",
       name: "Асхана",
-      where: "1-ғимарат, 1-қабат",
+      where: "Бас корпус, 1-қабат",
       hours: "08:30–17:00",
       note: "Түскі ас және буфет. Кампус картасымен төлеуге болады.",
       more: ["Ыстық түскі ас 12:00–14:00 аралығында.", "Буфет таңертеңнен жұмыс істейді: шай, нан, жеңіл тағам.", "Төлем кампус картасымен немесе қолма-қол."],
@@ -40,7 +44,7 @@
     {
       id: "sport",
       name: "Спорт кешені",
-      where: "Спорт корпус",
+      where: "Аумақ, спорт корпус",
       hours: "07:00–21:00",
       note: "Зал, жүгіру жолы. Кешке студенттерге ашық.",
       more: ["Зал, жүгіру жолы және шешінетін бөлме бар.", "Бос сағат 18:00–21:00, алдын ала жазылу керек емес.", "Ішке спорт киімімен және ауыстырылатын аяқкиіммен кіріңіз."],
@@ -48,7 +52,7 @@
     {
       id: "dorm",
       name: "Жатақхана",
-      where: "Кампус ауласы",
+      where: "Аумақ",
       hours: "тәулік бойы",
       note: "Кіру кампус картасымен. Қонақ 22:00-ге дейін.",
       more: ["Тұрғын кампус картасымен кіреді.", "Қонақ күзетте тіркеледі және 22:00-ге дейін болады.", "Комендант 1-қабатта, 09:00–18:00."],
@@ -56,7 +60,7 @@
     {
       id: "med",
       name: "Медпункт",
-      where: "1-ғимарат, 1-қабат",
+      where: "Бас корпус, 1-қабат",
       hours: "09:00–17:00",
       note: "Алғашқы көмек. Жедел жағдайда күзетке хабарлаңыз.",
       more: ["Алғашқы көмек және қысқа анықтама.", "Студенттік куәлік жеткілікті, бөлек полис сұралмайды.", "17:00-ден кейін жедел жағдайда күзет постына барыңыз."],
@@ -72,7 +76,7 @@
     {
       id: "hall",
       name: "Акт залы",
-      where: "1-ғимарат, 1-қабат",
+      where: "Бас корпус, 1-қабат",
       hours: "іс-шара кестесімен",
       note: "Жиын, концерт және студенттік кеш.",
       more: ["300 орын, сахна, дыбыс және экран.", "Іс-шара деканат арқылы кемінде 5 күн бұрын жазылады.", "Көрермен кампус картасын өзімен алады."],
@@ -80,7 +84,7 @@
     {
       id: "dean",
       name: "Деканат",
-      where: "1-ғимарат, 3-қабат",
+      where: "Бас корпус, 3-қабат",
       hours: "09:00–17:30",
       note: "Анықтама, мәртебе және оқу мәселесі.",
       more: ["Қабылдау 09:00–12:00 және 14:00–17:00.", "Анықтама, ауысу және академиялық мәселе осында.", "Кезек орнында. Студенттік куәлікті алыңыз."],
@@ -128,7 +132,26 @@
       note: "Кеңес және кафедра жиыны.",
       more: ["Студент қабылдауы кестемен.", "Құжат деканат арқылы өтеді.", "Дәліздің оң қанаты."],
     },
+    r314: {
+      id: "r314",
+      name: "Дәрісхана 314",
+      where: "Бас корпус, 3-қабат",
+      hours: "сабақ кестесімен",
+      note: "Ақпараттық қауіпсіздік негіздері осында өтеді.",
+      more: ["40 орын, проектор және тақта.", "Сабақ 10:00-де.", "Деканат пен оқытушылар бөлмесінің арасында."],
+    },
+    b2foyer: {
+      id: "b2foyer",
+      name: "Фойе",
+      where: "2-ғимарат, 1-қабат",
+      hours: "08:00–20:00",
+      note: "2-ғимараттың кіреберісі. Коворкинг 3-қабатта.",
+      more: ["Кіру кампус картасымен.", "Баспалдақ оң жақта.", "2-қабатта оқу бөлмелері."],
+    },
   };
+
+  const STAIR = { fixed: true, name: "Баспалдақ", kind: "stairs", c: 12, r: 1, w: 1, h: 10 };
+  const CORRIDOR = { fixed: true, name: "Дәліз", kind: "corridor", c: 1, r: 7, w: 11, h: 2 };
 
   const BUILDINGS = [
     {
@@ -138,29 +161,44 @@
         {
           id: "1",
           label: "1-қабат",
-          rooms: [
-            { place: "hall", x: 4, y: 14, w: 36, h: 72 },
-            { place: "food", x: 42, y: 14, w: 28, h: 42 },
-            { place: "med", x: 42, y: 60, w: 28, h: 26 },
-            { id: "gate", x: 72, y: 14, w: 24, h: 72 },
+          cols: 12,
+          rows: 10,
+          cells: [
+            { place: "hall", c: 1, r: 1, w: 5, h: 6 },
+            { place: "food", c: 6, r: 1, w: 6, h: 3 },
+            { place: "med", c: 6, r: 4, w: 6, h: 3 },
+            CORRIDOR,
+            { id: "gate", c: 1, r: 9, w: 11, h: 2 },
+            STAIR,
           ],
         },
         {
           id: "2",
           label: "2-қабат",
-          rooms: [
-            { place: "lib", x: 4, y: 14, w: 40, h: 72 },
-            { id: "r210", x: 46, y: 14, w: 24, h: 34 },
-            { id: "r214", x: 46, y: 52, w: 24, h: 34 },
-            { id: "r220", x: 72, y: 14, w: 24, h: 72 },
+          cols: 12,
+          rows: 10,
+          cells: [
+            { place: "lib", c: 1, r: 1, w: 5, h: 6 },
+            { id: "r210", c: 6, r: 1, w: 3, h: 3 },
+            { id: "r214", c: 6, r: 4, w: 3, h: 3 },
+            { id: "r220", c: 9, r: 1, w: 3, h: 6 },
+            CORRIDOR,
+            { fixed: true, name: "Қабат холлы", kind: "corridor", c: 1, r: 9, w: 11, h: 2 },
+            STAIR,
           ],
         },
         {
           id: "3",
           label: "3-қабат",
-          rooms: [
-            { place: "dean", x: 4, y: 14, w: 44, h: 72 },
-            { id: "staff", x: 50, y: 14, w: 46, h: 72 },
+          cols: 12,
+          rows: 10,
+          cells: [
+            { place: "dean", c: 1, r: 1, w: 5, h: 6 },
+            { id: "r314", c: 6, r: 1, w: 3, h: 6 },
+            { id: "staff", c: 9, r: 1, w: 3, h: 6 },
+            CORRIDOR,
+            { fixed: true, name: "Қабат холлы", kind: "corridor", c: 1, r: 9, w: 11, h: 2 },
+            STAIR,
           ],
         },
       ],
@@ -170,29 +208,88 @@
       name: "2-ғимарат",
       floors: [
         {
+          id: "1",
+          label: "1-қабат",
+          cols: 12,
+          rows: 10,
+          cells: [
+            { id: "b2foyer", c: 1, r: 1, w: 10, h: 6 },
+            { fixed: true, name: "Дәліз", kind: "corridor", c: 1, r: 7, w: 10, h: 2 },
+            { fixed: true, name: "Кіреберіс", kind: "corridor", c: 1, r: 9, w: 10, h: 2 },
+            { ...STAIR, w: 2, c: 11 },
+          ],
+        },
+        {
+          id: "2",
+          label: "2-қабат",
+          cols: 12,
+          rows: 10,
+          cells: [
+            { fixed: true, name: "Оқу бөлмелері", kind: "corridor", c: 1, r: 1, w: 10, h: 6 },
+            { fixed: true, name: "Дәліз", kind: "corridor", c: 1, r: 7, w: 10, h: 2 },
+            { fixed: true, name: "Қабат холлы", kind: "corridor", c: 1, r: 9, w: 10, h: 2 },
+            { ...STAIR, w: 2, c: 11 },
+          ],
+        },
+        {
           id: "3",
           label: "3-қабат",
-          rooms: [{ place: "work", x: 8, y: 16, w: 84, h: 68 }],
+          cols: 12,
+          rows: 10,
+          cells: [
+            { place: "work", c: 1, r: 1, w: 10, h: 6 },
+            { fixed: true, name: "Дәліз", kind: "corridor", c: 1, r: 7, w: 10, h: 2 },
+            { fixed: true, name: "Қабат холлы", kind: "corridor", c: 1, r: 9, w: 10, h: 2 },
+            { ...STAIR, w: 2, c: 11 },
+          ],
         },
       ],
     },
     {
-      id: "yard",
-      name: "Аумақ",
+      id: "sport",
+      name: "Спорт кешені",
       floors: [
         {
-          id: "0",
-          label: "Аула",
-          rooms: [
-            { place: "sport", x: 4, y: 14, w: 44, h: 72 },
-            { place: "dorm", x: 52, y: 14, w: 44, h: 72 },
+          id: "1",
+          label: "Зал",
+          cols: 12,
+          rows: 8,
+          cells: [{ place: "sport", c: 1, r: 1, w: 12, h: 8 }],
+        },
+      ],
+    },
+    {
+      id: "dorm",
+      name: "Жатақхана",
+      floors: [
+        {
+          id: "1",
+          label: "1-қабат",
+          cols: 12,
+          rows: 8,
+          cells: [
+            { place: "dorm", c: 1, r: 1, w: 8, h: 8 },
+            { fixed: true, name: "Кіреберіс", kind: "corridor", c: 9, r: 1, w: 4, h: 8 },
           ],
         },
       ],
     },
   ];
 
+  const CITY = [
+    { id: "main", name: "Бас корпус", w: 190, d: 128, h: 108, x: 4, y: 16, tone: "main" },
+    { id: "second", name: "2-ғимарат", w: 148, d: 108, h: 88, x: 58, y: 8, tone: "second" },
+    { id: "sport", name: "Спорт кешені", w: 168, d: 84, h: 46, x: 6, y: 64, tone: "sport" },
+    { id: "dorm", name: "Жатақхана", w: 132, d: 112, h: 98, x: 60, y: 52, tone: "dorm" },
+  ];
+  const CITY_TREES = [
+    [41, 40], [53, 40], [41, 56], [53, 56], [44, 8], [51, 14], [44, 88], [51, 82],
+    [30, 54], [36, 40], [62, 41], [90, 41], [88, 56], [8, 54], [94, 8], [94, 90],
+  ];
+
   let mapPick = { building: "main", floor: "1", room: "hall" };
+  let mapView = "campus";
+  let mapDive = null;
 
   function roomInfo(room) {
     if (room.place) return PLACES.find((p) => p.id === room.place);
@@ -203,10 +300,20 @@
     return room.place || room.id;
   }
 
+  function isPlace(cell) {
+    return cell && !cell.fixed && !cell.jump && (cell.place || cell.id);
+  }
+
+  function firstRoom(floor) {
+    if (floor.id === "0") return "";
+    const room = floor.cells.find(isPlace);
+    return room ? roomKey(room) : "";
+  }
+
   function findRoom(id) {
     for (const building of BUILDINGS) {
       for (const floor of building.floors) {
-        const room = floor.rooms.find((item) => roomKey(item) === id);
+        const room = floor.cells.find((item) => isPlace(item) && roomKey(item) === id);
         if (room) return { building, floor, room, info: roomInfo(room) };
       }
     }
@@ -220,47 +327,116 @@
     return { building, floor, spot };
   }
 
-  function campusMapHtml() {
-    const { building, floor, spot } = currentMap();
-    const info = spot?.info;
-    const buildings = BUILDINGS.map(
-      (b) =>
-        `<button type="button" class="map-chip ${b.id === building.id ? "is-on" : ""}" data-building="${esc(b.id)}">${esc(b.name)}</button>`
-    ).join("");
-    const floors = building.floors
-      .map(
-        (f) =>
-          `<button type="button" class="map-chip ${f.id === floor.id ? "is-on" : ""}" data-floor="${esc(f.id)}">${esc(f.label)}</button>`
-      )
-      .join("");
-    const rooms = floor.rooms
-      .map((room) => {
-        const item = roomInfo(room);
-        const on = roomKey(room) === mapPick.room ? "is-on" : "";
-        return `<button type="button" class="map-room ${on}" data-room="${esc(roomKey(room))}" style="left:${room.x}%;top:${room.y}%;width:${room.w}%;height:${room.h}%"><strong>${esc(item.name)}</strong></button>`;
+  function motionWait() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 720;
+  }
+
+  function floorPlanHtml(floor) {
+    return floor.cells
+      .map((cell) => {
+        const style = `grid-column:${cell.c} / span ${cell.w};grid-row:${cell.r} / span ${cell.h}`;
+        if (cell.fixed) {
+          return `<div class="map-fixed ${esc(cell.kind || "")}" style="${style}">${esc(cell.name)}</div>`;
+        }
+        const item = roomInfo(cell);
+        if (!item) return "";
+        const on = roomKey(cell) === mapPick.room ? "is-on" : "";
+        return `<button type="button" class="map-room ${on}" data-room="${esc(roomKey(cell))}" style="${style}"><strong>${esc(item.name)}</strong></button>`;
       })
       .join("");
-    const detail = info
-      ? `<p class="site-kicker">${esc(building.name)} · ${esc(floor.label)}</p>
-         <h3>${esc(info.name)}</h3>
-         <p><strong>${esc(info.where)}</strong> · ${esc(info.hours)}</p>
-         <p>${esc(info.note)}</p>
-         <ul class="site-list">${(info.more || []).map((line) => `<li>${esc(line)}</li>`).join("")}</ul>
-         ${info.id === "lib" && session ? `<a class="btn btn-primary" href="#library">Кітапхананы ашу</a>` : ""}`
-      : `<p>Қабаттан орынды таңдаңыз.</p>`;
+  }
+
+  function detailHtml(building, floor, info) {
+    if (!info) {
+      const empty = floor.cells.some(isPlace)
+        ? "Орынды таңдаңыз."
+        : "Бұл қабатта жеке орын жоқ. Дәліз бен баспалдақ қана бар.";
+      return `<p class="site-kicker">${esc(building.name)} · ${esc(floor.label)}</p><p>${empty}</p>`;
+    }
+    return `<p class="site-kicker">${esc(building.name)} · ${esc(floor.label)}</p>
+      <h3>${esc(info.name)}</h3>
+      <p><strong>${esc(info.where)}</strong> · ${esc(info.hours)}</p>
+      <p>${esc(info.note)}</p>
+      <ul class="site-list">${(info.more || []).map((line) => `<li>${esc(line)}</li>`).join("")}</ul>
+      ${info.id === "lib" && session ? `<a class="btn btn-primary" href="#library">Кітапхананы ашу</a>` : ""}`;
+  }
+
+  function campusCityHtml() {
+    const blocks = CITY.map(
+      (b) => `<button type="button" class="bldg tone-${b.tone}" data-enter="${esc(b.id)}" style="--w:${b.w}px;--d:${b.d}px;--h:${b.h}px;--x:${b.x}%;--y:${b.y}%">
+        <span class="face roof"><strong>${esc(b.name)}</strong></span>
+        <span class="face wall front"></span>
+        <span class="face wall back"></span>
+        <span class="face wall side left"></span>
+        <span class="face wall side right"></span>
+      </button>`
+    ).join("");
+    const chips = CITY.map(
+      (b) => `<button type="button" class="map-chip" data-enter="${esc(b.id)}">${esc(b.name)}</button>`
+    ).join("");
     return `<div class="campus-map" id="campus-map">
       <div class="map-toolbar">
-        <div class="map-chips">${buildings}</div>
-        <div class="map-chips">${floors}</div>
+        <div class="map-chips">${chips}</div>
       </div>
       <div class="map-layout">
-        <div class="floor-plan" aria-label="${esc(building.name)}, ${esc(floor.label)}">
-          <span class="map-north" aria-hidden="true">N</span>
-          ${rooms}
+        <div class="city-stage" aria-label="Кампустың 3D картасы">
+          <div class="city-world">
+            <div class="city-ground"></div>
+            ${CITY_TREES.map(([x, y]) => `<span class="tree" style="left:${x}%;top:${y}%"></span>`).join("")}
+            ${blocks}
+          </div>
         </div>
-        <aside class="map-detail">${detail}</aside>
+        <aside class="map-detail">
+          <p class="site-kicker">Кампус</p>
+          <h3>Барлық корпус</h3>
+          <p>Ғимаратты басыңыз. Ол жақындап, қабаттары 3D болып ашылады.</p>
+        </aside>
       </div>
     </div>`;
+  }
+
+  function campusInsideHtml() {
+    const { building, floor, spot } = currentMap();
+    const floors = building.floors
+      .map((item, index) => {
+        const on = item.id === floor.id ? "is-on" : "";
+        const mini = item.cells
+          .map((cell) => {
+            const kind = cell.fixed ? `mini-${cell.kind || "fixed"}` : roomKey(cell) === mapPick.room && on ? "mini-on" : "mini-room";
+            return `<i class="${esc(kind)}" style="grid-column:${cell.c} / span ${cell.w};grid-row:${cell.r} / span ${cell.h}"></i>`;
+          })
+          .join("");
+        return `<button type="button" class="slab ${on}" data-floor="${esc(item.id)}" style="--i:${index};--n:${building.floors.length}">
+          <span class="slab-top"><span class="slab-plan" style="--cols:${item.cols};--rows:${item.rows}">${mini}</span><strong>${esc(item.label)}</strong></span>
+          <span class="slab-wall"></span>
+        </button>`;
+      })
+      .join("");
+    const floorChips = building.floors
+      .map(
+        (item) =>
+          `<button type="button" class="map-chip ${item.id === floor.id ? "is-on" : ""}" data-floor="${esc(item.id)}">${esc(item.label)}</button>`
+      )
+      .join("");
+    return `<div class="campus-map is-inside" id="campus-map">
+      <div class="map-toolbar">
+        <button type="button" class="map-chip" data-back>← Аумақ</button>
+        <div class="map-chips">${floorChips}</div>
+      </div>
+      <div class="map-layout">
+        <div class="stack-stage" aria-label="${esc(building.name)} 3D">
+          <div class="stack-world">${floors}</div>
+        </div>
+        <aside class="map-detail">${detailHtml(building, floor, spot?.info)}</aside>
+      </div>
+      <div class="floor-plan is-rise" style="--cols:${floor.cols};--rows:${floor.rows}" aria-label="${esc(building.name)}, ${esc(floor.label)}">
+        ${floorPlanHtml(floor)}
+      </div>
+    </div>`;
+  }
+
+  function campusMapHtml() {
+    return mapView === "inside" ? campusInsideHtml() : campusCityHtml();
   }
 
   function paintMap() {
@@ -270,9 +446,49 @@
     bindMapControls();
   }
 
+  function openBuilding(id, roomId) {
+    const building = BUILDINGS.find((b) => b.id === id);
+    if (!building) return;
+    clearTimeout(mapDive);
+    mapDive = null;
+    const found = roomId ? findRoom(roomId) : null;
+    const floor = found?.floor || building.floors[0];
+    mapView = "inside";
+    mapPick = { building: building.id, floor: floor.id, room: roomId || firstRoom(floor) };
+    paintMap();
+  }
+
+  function enterBuilding(id, roomId) {
+    const building = BUILDINGS.find((b) => b.id === id);
+    if (!building) return;
+    const world = document.querySelector(".city-world");
+    if (!world || mapView !== "campus") {
+      openBuilding(id, roomId);
+      return;
+    }
+    world.classList.add("is-dive");
+    world.querySelectorAll(".bldg").forEach((el) => {
+      el.classList.toggle("is-chosen", el.dataset.enter === id);
+      el.classList.toggle("is-away", el.dataset.enter !== id);
+    });
+    clearTimeout(mapDive);
+    mapDive = setTimeout(() => openBuilding(id, roomId), motionWait());
+  }
+
+  function showCampus() {
+    clearTimeout(mapDive);
+    mapDive = null;
+    mapView = "campus";
+    paintMap();
+  }
+
   function selectRoom(id) {
     const found = findRoom(id);
     if (!found) return;
+    if (mapView === "campus") {
+      enterBuilding(found.building.id, id);
+      return;
+    }
     mapPick = { building: found.building.id, floor: found.floor.id, room: id };
     paintMap();
   }
@@ -280,21 +496,17 @@
   function bindMapControls() {
     const map = document.getElementById("campus-map");
     if (!map) return;
-    map.querySelectorAll("[data-building]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const building = BUILDINGS.find((b) => b.id === btn.dataset.building);
-        if (!building) return;
-        const floor = building.floors[0];
-        mapPick = { building: building.id, floor: floor.id, room: roomKey(floor.rooms[0]) };
-        paintMap();
-      });
+    map.querySelectorAll("[data-enter]").forEach((btn) => {
+      btn.addEventListener("click", () => enterBuilding(btn.dataset.enter));
     });
+    map.querySelector("[data-back]")?.addEventListener("click", showCampus);
     map.querySelectorAll("[data-floor]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const building = BUILDINGS.find((b) => b.id === mapPick.building);
         const floor = building?.floors.find((f) => f.id === btn.dataset.floor);
         if (!floor) return;
-        mapPick = { building: building.id, floor: floor.id, room: roomKey(floor.rooms[0]) };
+        mapView = "inside";
+        mapPick = { building: building.id, floor: floor.id, room: firstRoom(floor) };
         paintMap();
       });
     });
@@ -462,6 +674,7 @@
         },
       ],
       fails: {},
+      faces: [],
     };
   }
 
@@ -469,8 +682,15 @@
   let session = loadSession();
   let flash = null;
   let siteNote = null;
+  let gradeCourse = LESSONS[0].course;
   let loginStep = "password";
   let pendingUser = null;
+  let facePhase = "idle";
+  let faceTimer = null;
+  let faceStream = null;
+  let faceCameraTask = null;
+  let faceCameraDenied = false;
+  let enrollStream = null;
 
   function loadDb() {
     try {
@@ -510,6 +730,10 @@
           saved.backup = { copies: [], restores: [] };
           patched = true;
         }
+        if (!Array.isArray(saved.faces)) {
+          saved.faces = [];
+          patched = true;
+        }
         if (CampusDbms.patch(saved)) patched = true;
         if (CampusAcs.patch(saved)) patched = true;
         if (patched) sessionStorage.setItem(STORE, JSON.stringify(saved));
@@ -546,6 +770,10 @@
     saveSession(null);
     loginStep = "password";
     pendingUser = null;
+    facePhase = "idle";
+    faceCameraDenied = false;
+    clearFaceTimer();
+    stopFaceCamera();
     flash = { type: "ok", text: "Оқу деректері қалпына келтірілді." };
     location.hash = "#site";
     render();
@@ -581,6 +809,14 @@
 
   function userByLogin(login) {
     return db.users.find((u) => u.login === login);
+  }
+
+  function faceFor(userId) {
+    return (db.faces || []).find((f) => f.userId === userId && f.image);
+  }
+
+  function faceShot(record) {
+    return typeof record?.image === "string" && record.image.startsWith("data:image/jpeg") ? record.image : "";
   }
 
   function route() {
@@ -758,7 +994,7 @@
 
         <section class="site-block site-grounds" id="grounds">
           <h2>Кампус аумағы</h2>
-          <p>Бас корпустың қабатын ашып, бөлмені басыңыз. Карточка да сол сипаттаманы ашады.</p>
+          <p>Барлық корпус 3D картада тұр. Біреуін бассаңыз, қабаттары ашылады.</p>
           ${campusMapHtml()}
           <div class="site-cards site-cards-wide">
             ${PLACES.map(
@@ -826,6 +1062,9 @@
       )
       .join("");
     const mfa = loginStep === "mfa";
+    const face = loginStep === "face";
+    const scanning = face && facePhase === "scan";
+    const faceName = pendingUser ? esc(pendingUser.name) : "";
     return `
       <div class="login-wrap">
         <section class="login-card">
@@ -836,15 +1075,29 @@
             <div class="demo-list">${demos}</div>
           </div>
           <form class="login-form form" id="login-form">
-            <h2>${mfa ? "Екінші фактор" : "Кіру"}</h2>
-            <p style="color:var(--muted)">Құпиясөз: ${PASSWORD}. MFA коды: ${MFA_CODE}.</p>
+            <h2>${face ? "Face ID" : mfa ? "Екінші фактор" : "Кіру"}</h2>
+            <p style="color:var(--muted)">Құпиясөз: ${PASSWORD}. Қажет болса код: ${MFA_CODE}.</p>
             ${
               flash
                 ? `<div class="note ${flash.type === "bad" ? "bad" : "warn"}">${esc(flash.text)}</div>`
                 : ""
             }
             ${
-              mfa
+              face
+                ? `<div class="face-id${scanning ? " is-scan" : ""}">
+                     <div class="face-stage${scanning ? " is-scan" : ""}">
+                       <video id="face-video" autoplay playsinline muted></video>
+                       <svg class="face-glyph" viewBox="0 0 120 160" aria-hidden="true">
+                         <path class="face-frame" d="M28 16 H14 V34 M92 16 H106 V34 M14 126 V144 H28 M106 126 V144 H92"/>
+                         <path class="face-scan" d="M24 80 H96"/>
+                       </svg>
+                     </div>
+                     <p class="face-name">${faceName}</p>
+                     <p class="face-hint" id="face-hint">${scanning ? "Камера ашық. Бет сақталған үлгімен салыстырылуда." : "Кадр сақталмайды. Үлгіге сай келмесе сессия ашылмайды."}</p>
+                     <button class="btn btn-primary" id="face-scan" type="button"${scanning ? " disabled" : ""}>${scanning ? "Тексерілуде…" : "Face ID"}</button>
+                     ${faceCameraDenied ? `<button class="btn btn-ghost" id="face-code" type="button">Кодпен растау</button>` : ""}
+                   </div>`
+                : mfa
                 ? `<label><span>Растау коды</span><input id="mfa" inputmode="numeric" autocomplete="one-time-code" required></label>
                    <button class="btn btn-primary" type="submit">Сессияны ашу</button>`
                 : `<label><span>Логин</span><input id="login" autocomplete="username" required></label>
@@ -875,7 +1128,7 @@
       student: student
         ? `Сіздің мәртебеңіз: ${student.status}. Аты-жөні мен байланысты өзгерту үшін өтінім жіберіңіз.`
         : "",
-      teacher: "Жаңа баға бірден жазылады. Түзетуді бөлім басшысы бекітеді. ЖСН бұл экранда жоқ.",
+      teacher: "Баға қойғанда сабақты өзіңіз таңдайсыз. Жаңа баға бірден жазылады. Түзетуді бөлім басшысы бекітеді. ЖСН бұл экранда жоқ.",
       dean: "Сабақ бермейсіз. Құжатқа қол қоясыз және іс-шара өткізесіз.",
       registrar: "Байланысты жазасыз, бірақ өзіңіз бекітпейсіз. Жою құқығы жоқ. Мәртебені бөлім басшысы бекітеді.",
       head: "Жазбаны өзіңіз жазбайсыз. Тіркеуші мен оқытушы жазған өзгерісті бекітесіз.",
@@ -903,8 +1156,7 @@
       <section class="panel">
         <h2>Бүгінгі сабақ</h2>
         <div class="schedule">
-          <div class="lesson"><div><strong>Ақпараттық қауіпсіздік негіздері</strong><em>Кушенов Рамазан</em></div><em>10:00 · 314</em></div>
-          <div class="lesson"><div><strong>Желілік технологиялар</strong><em>Кушенов Рамазан</em></div><em>12:00 · 210</em></div>
+          ${LESSONS.map((lesson) => `<div class="lesson"><div><strong>${esc(lesson.course)}</strong><em>${esc(lesson.teacher)}</em></div><em>${esc(lesson.when)} · ${esc(lesson.room)}</em></div>`).join("")}
         </div>
       </section>`;
     return shell(
@@ -980,13 +1232,16 @@
         `<section class="panel"><table><thead><tr><th>Курс</th><th>Баға</th></tr></thead><tbody>${rows}</tbody></table></section>`
       );
     }
+    if (!LESSONS.some((lesson) => lesson.course === gradeCourse)) gradeCourse = LESSONS[0].course;
+    const lessonOptions = LESSONS.map(
+      (lesson) =>
+        `<option value="${esc(lesson.course)}"${lesson.course === gradeCourse ? " selected" : ""}>${esc(lesson.course)} · ${esc(lesson.when)} · ${esc(lesson.room)}</option>`
+    ).join("");
     const rows = db.students
       .map((s) => {
-        const grade = db.grades.find(
-          (g) => g.studentId === s.id && g.course === "Ақпараттық қауіпсіздік негіздері"
-        );
+        const grade = db.grades.find((g) => g.studentId === s.id && g.course === gradeCourse);
         const waiting = db.pending.some(
-          (p) => p.kind === "grade" && p.studentId === s.id && p.state === "wait"
+          (p) => p.kind === "grade" && p.studentId === s.id && p.course === gradeCourse && p.state === "wait"
         );
         return `<tr>
           <td>${esc(s.name)}</td>
@@ -1004,7 +1259,13 @@
     return shell(
       "Баға қою",
       `<section class="panel">
-        <p style="margin-bottom:0.8rem;color:var(--muted)">Курс: Ақпараттық қауіпсіздік негіздері. Жаңа баға бірден жазылады. Түзету бөлім басшысын күтеді. ЖСН бұл экранда жоқ.</p>
+        <form class="form course-pick">
+          <label>
+            <span>Сабақ</span>
+            <select id="grade-course">${lessonOptions}</select>
+          </label>
+        </form>
+        <p style="margin-bottom:0.8rem;color:var(--muted)">Кушенов Рамазан таңдаған сабаққа баға жазады. Жаңа баға бірден жазылады. Түзету бөлім басшысын күтеді. ЖСН бұл экранда жоқ.</p>
         <table><thead><tr><th>Студент</th><th>Топ</th><th>Баға</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </section>`
     );
@@ -1045,6 +1306,24 @@
         </tr>`;
       })
       .join("");
+    const openFaces = db.users.filter((u) => !faceFor(u.id));
+    const faceOptions = openFaces
+      .map((u) => `<option value="${esc(u.id)}">${esc(u.name)} · ${esc(ROLES[u.role])}</option>`)
+      .join("");
+    const faceRows = (db.faces || [])
+      .map((f) => {
+        const person = db.users.find((u) => u.id === f.userId);
+        const shot = faceShot(f);
+        return `<tr>
+          <td>${shot ? `<img class="face-thumb" src="${shot}" alt="">` : "—"}</td>
+          <td>${esc(person?.name || "—")}</td>
+          <td>${esc(person ? ROLES[person.role] : "—")}</td>
+          <td>${fmt(f.at)}</td>
+          <td>${esc(f.by)}</td>
+          <td><button class="btn btn-ghost" type="button" data-face-drop="${esc(f.userId)}">Алу</button></td>
+        </tr>`;
+      })
+      .join("");
     const mine = db.pending
       .filter((p) => p.kind === "status")
       .map(
@@ -1070,7 +1349,27 @@
             <label><span>Мәртебе</span><select name="status">${options}</select></label>
             <button class="btn btn-primary" type="submit">Тіркеу</button>
           </form>
-          <p class="note">Жаңа студент сол құпиясөзбен және MFA кодымен кіре алады. Жеке дерек журналданады.</p>
+          <p class="note">Жаңа студент сол құпиясөзбен және MFA кодымен кіре алады. Face ID өзі қосылмайды.</p>
+        </section>
+        <section class="panel">
+          <h2>Face ID</h2>
+          ${
+            openFaces.length
+              ? `<form class="form" id="face-enroll">
+                  <label><span>Адам</span><select name="user">${faceOptions}</select></label>
+                  <div class="face-stage enroll-stage">
+                    <video id="enroll-video" autoplay playsinline muted></video>
+                  </div>
+                  <p class="face-hint" id="enroll-hint">Адам осы жерде тұрады. Камераны ашып, бір кадрды базаға сақтаңыз.</p>
+                  <div class="actions">
+                    <button class="btn btn-ghost" id="face-enroll-cam" type="button">Камераны ашу</button>
+                    <button class="btn btn-primary" id="face-enroll-save" type="submit" disabled>Базаға сақтау</button>
+                  </div>
+                </form>`
+              : `<p>Тіркелмеген адам қалмады.</p>`
+          }
+          <p class="note">Кадр faces кестесіне жазылады. Кіру кезіндегі тексеру жаңа сурет қоспайды. Үлгіге сай келмесе сессия ашылмайды.</p>
+          <table><thead><tr><th>Үлгі</th><th>Адам</th><th>Рөл</th><th>Қашан</th><th>Кім берді</th><th></th></tr></thead><tbody>${faceRows || "<tr><td colspan='6'>Әлі жоқ</td></tr>"}</tbody></table>
         </section>
         <section class="panel">
           <h2>Мәртебені өзгерту</h2>
@@ -1116,7 +1415,7 @@
       .filter((p) => p.kind === "profile" || p.kind === "status" || p.kind === "grade")
       .map((p) => {
         const name = studentById(p.studentId)?.name;
-        const who = p.kind === "status" ? name : p.kind === "grade" ? `${name} · баға` : `${name} · дерек`;
+        const who = p.kind === "status" ? name : p.kind === "grade" ? `${name} · ${p.course}` : `${name} · дерек`;
         const change = p.kind === "profile" ? `${p.phoneFrom} → ${p.phoneTo}` : `${p.from} → ${p.to}`;
         const buttons =
           p.state === "wait"
@@ -1185,7 +1484,7 @@
     return shell(
       "Кампус",
       `<section class="panel">
-        <p class="note">Бас корпустың қабатын ашып, бөлмені басыңыз. Кітапханадан кітап алу осы порталда жазылады.</p>
+        <p class="note">Барлық корпус 3D картада тұр. Біреуін бассаңыз, қабаттары ашылады.</p>
         ${campusMapHtml()}
         <div class="place-grid">${cards}</div>
       </section>`
@@ -1424,6 +1723,8 @@
   function render() {
     const app = document.getElementById("app");
     const { page, id } = route();
+    if (!(page === "login" && loginStep === "face")) stopFaceCamera();
+    stopEnrollCamera();
     const publicPage = new Set(["site", "about", "grounds", "news", "meetings", "contacts"]);
     if (publicPage.has(page) || (!session && page !== "login")) {
       app.innerHTML = viewSite();
@@ -1474,6 +1775,157 @@
     bindApp();
   }
 
+  function clearFaceTimer() {
+    if (!faceTimer) return;
+    clearTimeout(faceTimer);
+    faceTimer = null;
+  }
+
+  function stopEnrollCamera() {
+    if (!enrollStream) return;
+    enrollStream.getTracks().forEach((track) => track.stop());
+    enrollStream = null;
+  }
+
+  const FACE_MATCH = 0.22;
+
+  function captureFace(video) {
+    const width = 320;
+    const height = Math.max(240, Math.round(width * (video.videoHeight / video.videoWidth)));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.translate(width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, width, height);
+    return canvas.toDataURL("image/jpeg", 0.72);
+  }
+
+  function loadFaceImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("face"));
+      img.src = src;
+    });
+  }
+
+  function facePrint(img) {
+    const w = 32;
+    const h = 24;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, w, h);
+    const data = ctx.getImageData(0, 0, w, h).data;
+    const gray = new Float32Array(w * h);
+    for (let i = 0; i < gray.length; i++) {
+      const o = i * 4;
+      gray[i] = data[o] * 0.299 + data[o + 1] * 0.587 + data[o + 2] * 0.114;
+    }
+    return gray;
+  }
+
+  function faceScore(a, b) {
+    let meanA = 0;
+    let meanB = 0;
+    for (let i = 0; i < a.length; i++) {
+      meanA += a[i];
+      meanB += b[i];
+    }
+    meanA /= a.length;
+    meanB /= b.length;
+    let dot = 0;
+    let na = 0;
+    let nb = 0;
+    for (let i = 0; i < a.length; i++) {
+      const da = a[i] - meanA;
+      const db = b[i] - meanB;
+      dot += da * db;
+      na += da * da;
+      nb += db * db;
+    }
+    if (na < 1 || nb < 1) return 0;
+    return dot / Math.sqrt(na * nb);
+  }
+
+  async function faceMatches(shot, stored) {
+    if (!shot || !stored) return false;
+    const [live, saved] = await Promise.all([loadFaceImage(shot), loadFaceImage(stored)]);
+    return faceScore(facePrint(live), facePrint(saved)) >= FACE_MATCH;
+  }
+
+  function stopFaceCamera() {
+    faceCameraTask = null;
+    if (!faceStream) return;
+    faceStream.getTracks().forEach((track) => track.stop());
+    faceStream = null;
+  }
+
+  function attachFaceCamera(stream) {
+    const video = document.getElementById("face-video");
+    if (!video || loginStep !== "face") return;
+    video.srcObject = stream;
+    video.play().catch(() => {});
+  }
+
+  function openFaceCamera() {
+    const hint = document.getElementById("face-hint");
+    if (!navigator.mediaDevices?.getUserMedia) {
+      if (hint) hint.textContent = "Бұл браузер камераны ашпайды. Кодпен кіріңіз.";
+      return;
+    }
+    if (faceCameraDenied) return;
+    if (faceStream) {
+      attachFaceCamera(faceStream);
+      return;
+    }
+    if (hint && facePhase !== "scan") hint.textContent = "Камера рұқсатын күтіп тұр. Кадр сақталмайды.";
+    if (!faceCameraTask) {
+      faceCameraTask = navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "user" }, audio: false })
+        .then((stream) => {
+          faceCameraTask = null;
+          if (loginStep !== "face") {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          faceStream = stream;
+          attachFaceCamera(stream);
+          const live = document.getElementById("face-hint");
+          if (live && facePhase !== "scan") live.textContent = "Камера ашық. Үлгіге сай келмесе сессия ашылмайды.";
+        })
+        .catch(() => {
+          faceCameraTask = null;
+          faceCameraDenied = true;
+          const live = document.getElementById("face-hint");
+          if (live) live.textContent = "Камера ашылмады. Рұқсат беріңіз немесе кодпен кіріңіз.";
+        });
+    }
+  }
+
+  function finishLogin(detail) {
+    saveSession({
+      id: pendingUser.id,
+      login: pendingUser.login,
+      name: pendingUser.name,
+      role: pendingUser.role,
+      studentId: pendingUser.studentId || null,
+    });
+    log(pendingUser, "Кіру сәтті", detail);
+    pendingUser = null;
+    loginStep = "password";
+    facePhase = "idle";
+    faceCameraDenied = false;
+    clearFaceTimer();
+    stopFaceCamera();
+    flash = null;
+    location.hash = "#home";
+    render();
+  }
+
   function bindLogin() {
     document.querySelectorAll("[data-login]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1485,8 +1937,55 @@
       });
     });
     document.getElementById("reset-demo")?.addEventListener("click", resetDemo);
+    document.getElementById("face-scan")?.addEventListener("click", () => {
+      if (!pendingUser || facePhase === "scan") return;
+      const record = faceFor(pendingUser.id);
+      const video = document.getElementById("face-video");
+      if (!record?.image || !video?.videoWidth) {
+        flash = { type: "bad", text: "Камера әлі дайын емес. Бетті кадрға түсіріп, қайталаңыз." };
+        render();
+        return;
+      }
+      const shot = captureFace(video);
+      const stored = record.image;
+      const who = pendingUser;
+      facePhase = "scan";
+      flash = null;
+      render();
+      clearFaceTimer();
+      faceTimer = setTimeout(async () => {
+        faceTimer = null;
+        if (loginStep !== "face" || pendingUser !== who) return;
+        let matched = false;
+        try {
+          matched = await faceMatches(shot, stored);
+        } catch {
+          matched = false;
+        }
+        if (loginStep !== "face" || pendingUser !== who) return;
+        if (!matched) {
+          log(who, "Face ID сәтсіз", "Үлгі сәйкес келмеді");
+          facePhase = "idle";
+          flash = { type: "bad", text: "Face ID сәйкес келмеді. Сессия ашылмады." };
+          render();
+          return;
+        }
+        finishLogin("Face ID расталды");
+      }, 900);
+    });
+    document.getElementById("face-code")?.addEventListener("click", () => {
+      clearFaceTimer();
+      stopFaceCamera();
+      facePhase = "idle";
+      faceCameraDenied = false;
+      loginStep = "mfa";
+      flash = { type: "warn", text: "Камера жабылды. Растау кодын енгізіңіз." };
+      render();
+    });
+    if (loginStep === "face") openFaceCamera();
     document.getElementById("login-form")?.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (loginStep === "face") return;
       if (loginStep === "mfa") {
         const code = document.getElementById("mfa").value.trim();
         if (code !== MFA_CODE) {
@@ -1495,19 +1994,7 @@
           render();
           return;
         }
-        saveSession({
-          id: pendingUser.id,
-          login: pendingUser.login,
-          name: pendingUser.name,
-          role: pendingUser.role,
-          studentId: pendingUser.studentId || null,
-        });
-        log(pendingUser, "Кіру сәтті", "MFA расталды");
-        pendingUser = null;
-        loginStep = "password";
-        flash = null;
-        location.hash = "#home";
-        render();
+        finishLogin("MFA расталды");
         return;
       }
       const login = document.getElementById("login").value.trim();
@@ -1535,8 +2022,14 @@
       db.fails[login] = { n: 0, until: 0 };
       saveDb();
       pendingUser = user;
-      loginStep = "mfa";
-      flash = { type: "warn", text: "Құпиясөз қабылданды. Сессия екінші факторсыз ашылмайды." };
+      facePhase = "idle";
+      if (faceFor(user.id)) {
+        loginStep = "face";
+        flash = { type: "warn", text: "Құпиясөз қабылданды. Тіркеуші берген Face ID үлгісімен растаңыз." };
+      } else {
+        loginStep = "mfa";
+        flash = { type: "warn", text: "Face ID тіркелмеген. Сессияны код ашады. Үлгіні тіркеуші береді." };
+      }
       render();
     });
     flash = null;
@@ -1549,6 +2042,10 @@
       log(session, "Шығу", session.login);
       saveSession(null);
       loginStep = "password";
+      facePhase = "idle";
+      faceCameraDenied = false;
+      clearFaceTimer();
+      stopFaceCamera();
       location.hash = "#site";
       render();
     });
@@ -1607,8 +2104,77 @@
       });
       log(session, "Студент тіркелді", `${name} · ${login} · ${group}`);
       saveDb();
-      flash = { type: "ok", text: `${name} тіркелді. Кіру: ${login}. Карта: ${card}.` };
+      flash = { type: "ok", text: `${name} тіркелді. Кіру: ${login}. Карта: ${card}. Face ID әлі жоқ.` };
       render();
+    });
+    document.getElementById("face-enroll-cam")?.addEventListener("click", () => {
+      if (session.role !== "registrar") return;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        flash = { type: "bad", text: "Бұл браузер камераны ашпайды." };
+        render();
+        return;
+      }
+      stopEnrollCamera();
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "user" }, audio: false })
+        .then((stream) => {
+          const video = document.getElementById("enroll-video");
+          if (!video) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          enrollStream = stream;
+          video.srcObject = stream;
+          video.play().catch(() => {});
+          const save = document.getElementById("face-enroll-save");
+          if (save) save.disabled = false;
+          const hint = document.getElementById("enroll-hint");
+          if (hint) hint.textContent = "Кадр дайын. Базаға сақтау оны faces кестесіне жазады.";
+        })
+        .catch(() => {
+          flash = { type: "bad", text: "Камера ашылмады. Рұқсат беріңіз." };
+          render();
+        });
+    });
+    document.getElementById("face-enroll")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (session.role !== "registrar") {
+        flash = { type: "bad", text: "Face ID үлгісін тек тіркеуші береді." };
+        render();
+        return;
+      }
+      const user = db.users.find((u) => u.id === new FormData(e.target).get("user"));
+      const video = document.getElementById("enroll-video");
+      if (!user || !video?.videoWidth || !enrollStream) {
+        flash = { type: "bad", text: "Алдымен камераны ашып, бетті кадрға түсіріңіз." };
+        render();
+        return;
+      }
+      const image = captureFace(video);
+      stopEnrollCamera();
+      db.faces = (db.faces || []).filter((f) => f.userId !== user.id);
+      db.faces.push({
+        id: "f" + Date.now(),
+        userId: user.id,
+        at: Date.now(),
+        by: session.name,
+        image,
+      });
+      log(session, "Face ID базаға сақталды", user.name);
+      saveDb();
+      flash = { type: "ok", text: `${user.name} үшін Face ID faces кестесіне сақталды.` };
+      render();
+    });
+    document.querySelectorAll("[data-face-drop]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (session.role !== "registrar") return;
+        const user = db.users.find((u) => u.id === btn.dataset.faceDrop);
+        db.faces = (db.faces || []).filter((f) => f.userId !== btn.dataset.faceDrop);
+        log(session, "Face ID алынды", user?.name || "Белгісіз");
+        saveDb();
+        flash = { type: "ok", text: `${user?.name || "Адам"} енді Face ID-мен кірмейді.` };
+        render();
+      });
     });
     document.getElementById("profile-form")?.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -1678,21 +2244,27 @@
       flash = { type: "ok", text: "Өтінім жіберілді. Ресми мәртебе бекітілгенше өзгермейді." };
       render();
     });
+    document.getElementById("grade-course")?.addEventListener("change", (e) => {
+      const next = e.target.value;
+      if (!LESSONS.some((lesson) => lesson.course === next)) return;
+      gradeCourse = next;
+      render();
+    });
     document.querySelectorAll("[data-grade]").forEach((form) => {
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         const studentId = form.dataset.grade;
         const value = Number(new FormData(form).get("value"));
         if (Number.isNaN(value) || value < 0 || value > 100) return;
-        const course = "Ақпараттық қауіпсіздік негіздері";
+        const course = gradeCourse;
         const current = db.grades.find((g) => g.studentId === studentId && g.course === course);
         const student = studentById(studentId);
         if (session.role !== "teacher") return;
         if (!current) {
           db.grades.push({ id: "g" + Date.now(), studentId, course, value, state: "official" });
-          log(session, "Баға қойылды", `${student.name}: ${value}`);
+          log(session, "Баға қойылды", `${student.name} · ${course}: ${value}`);
           saveDb();
-          flash = { type: "ok", text: "Баға қойылды." };
+          flash = { type: "ok", text: `${course}: баға қойылды.` };
           render();
           return;
         }
@@ -1718,9 +2290,9 @@
           authorName: session.name,
           state: "wait",
         });
-        log(session, "Баға түзетуі", `${student.name}: ${current.value} → ${value}`);
+        log(session, "Баға түзетуі", `${student.name} · ${course}: ${current.value} → ${value}`);
         saveDb();
-        flash = { type: "ok", text: "Түзету бөлім басшысына кетті. Ресми баға әзірге сол." };
+        flash = { type: "ok", text: `${course}: түзету бөлім басшысына кетті. Ресми баға әзірге сол.` };
         render();
       });
     });

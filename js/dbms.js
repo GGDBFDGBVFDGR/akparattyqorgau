@@ -2,11 +2,13 @@ const CampusDbms = (() => {
   const OBJECTS = [
     { id: "students", table: "students", holds: "ЖСН, аты-жөні, байланыс, оқу мәртебесі", kind: "жеке", grant: "Тіркеуші портал арқылы. Жолды ДҚБЖ ашпайды." },
     { id: "grades", table: "grades", holds: "Баға, қатысу, тапсырма күйі", kind: "оқу", grant: "Оқытушы портал арқылы жазады." },
+    { id: "faces", table: "faces", holds: "Face ID үлгісі", kind: "жеке", grant: "Тіркеуші портал арқылы жазады. Жолды ДҚБЖ ашпайды." },
   ];
 
   const TEST = {
     students: { rows: 2, sample: "сынақ-1 · ЖСН жоқ" },
     grades: { rows: 2, sample: "сынақ курсы · баға жоқ" },
+    faces: { rows: 1, sample: "сынақ · үлгі жоқ" },
   };
 
   let look = "prod";
@@ -56,6 +58,7 @@ const CampusDbms = (() => {
 
   function count(ctx, id) {
     if (look === "test") return TEST[id].rows;
+    if (id === "faces") return (ctx.db.faces || []).filter((row) => row.image).length;
     const counts = ctx.counts();
     return id === "students" ? counts.students : counts.grades;
   }
