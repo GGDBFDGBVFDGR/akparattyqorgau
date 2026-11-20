@@ -80,21 +80,21 @@ const LAB8 = {
     { id: "monitor", name: "Мониторинг", sub: "SIEM · VLAN 70", level: "бақылау", vlan: "70", x: 800, y: 268, w: 210, h: 128, fill: "#e8ecf4", color: "#243056", text: "SIEM журналды қабылдайды. Кері басқару арнасы жоқ: мониторингтен серверге кіру әкімшілік сегмент арқылы ғана." },
   ],
   links: [
-    { n: "01", from: "internet", to: "dmz", decision: "Рұқсат", proto: "HTTPS, TLS 1.2+", control: "NGFW, WAF", why: "Сыртқы пайдаланушы порталды тек шекара және қолданбалы сүзгі арқылы көреді.", kind: "allow", d: "M 208 78 L 274 78 L 274 158 L 340 158", label: "TLS · NGFW", lx: 274, ly: 118 },
-    { n: "02", from: "internet", to: "admin", decision: "Рұқсат", proto: "IPsec немесе TLS VPN", control: "NGFW, MFA", why: "Қашықтағы қызметкер мен әкімші шекарада туннель ашады. Тоннель дерекқорға созылмайды.", kind: "mgmt", d: "M 208 48 L 800 48", label: "VPN · MFA", lx: 500, ly: 32 },
-    { n: "03", from: "guest", to: "internet", decision: "Рұқсат", proto: "HTTPS шығыс", control: "NGFW", why: "Қонақ тек интернетке шығады. Ішкі мекенжайға маршрут жоқ.", kind: "allow", d: "M 118 128 L 118 92", label: "тек шығыс", lx: 72, ly: 110 },
-    { n: "04", from: "guest", to: "servers", decision: "Тыйым", proto: "кез келген", control: "NGFW, VLAN", why: "Қонақ желісі серверге, әкімшілікке және көшірмеге өтпейді. №6 тәуекел 7.", kind: "deny", d: "M 208 163 L 300 163", label: "тыйым", lx: 254, ly: 184 },
-    { n: "05", from: "users", to: "dmz", decision: "Рұқсат", proto: "HTTPS, TLS", control: "NGFW, WAF", why: "Кампустегі пайдаланушы порталды қонақпен бірдей жария арнамен ашады.", kind: "allow", d: "M 150 248 L 150 228 L 340 186", label: "HTTPS", lx: 214, ly: 214 },
-    { n: "06", from: "users", to: "servers", decision: "Рұқсат", proto: "LDAP немесе Kerberos, TLS", control: "IAM, MFA", why: "Пайдаланушы желісі тек сәйкестендіру қызметін көреді, қойма портын көрмейді.", kind: "allow", d: "M 228 312 L 328 332", label: "LDAP · TLS", lx: 278, ly: 292 },
-    { n: "07", from: "dmz", to: "servers", decision: "Рұқсат", proto: "TCP/8443, TLS", control: "IPS", why: "Кері прокси тек LMS және IAM API-ге барады.", kind: "allow", d: "M 456 208 L 456 268", label: "TLS · IPS", lx: 522, ly: 238 },
-    { n: "08", from: "servers", to: "servers", decision: "Рұқсат", proto: "TCP/5432, TLS", control: "Қызметтік тіркелгі", why: "Қолданба қоймаға ішкі микросегментте барады. Пайдаланушы мен DMZ бұл портты көрмейді.", kind: "allow" },
-    { n: "09", from: "dmz", to: "servers", decision: "Тыйым", proto: "TCP/5432", control: "NGFW", why: "DMZ қоймаға тікелей қосылмайды.", kind: "deny" },
-    { n: "10", from: "servers", to: "backup", decision: "Рұқсат", proto: "Көшіру арнасы, TLS", control: "AES-256, бір бағыт", why: "Сервер суретті оқшау VLAN-ға жібереді. Кері өшіру құқығы жоқ.", kind: "allow", d: "M 458 396 L 458 456", label: "AES · бір бағыт", lx: 560, ly: 426 },
-    { n: "11", from: "users", to: "backup", decision: "Тыйым", proto: "кез келген", control: "VLAN, default deny", why: "Пайдаланушы мен DMZ көшірме аймағына кірмейді.", kind: "deny" },
-    { n: "12", from: "admin", to: "servers", decision: "Рұқсат", proto: "TCP/22, bastion", control: "VPN, MFA", why: "Сервер мен DMZ басқаруы тек әкімшілік сегменттен, bastion арқылы.", kind: "mgmt", d: "M 800 90 L 700 90 L 700 324 L 588 324", label: "bastion", lx: 748, ly: 176 },
-    { n: "13", from: "servers", to: "monitor", decision: "Рұқсат", proto: "syslog, TLS/6514", control: "Бір бағытты журнал", why: "DMZ, сервер, әкімшілік және EDR журналы SIEM-ге кетеді. Кері басқару жоқ.", kind: "log", d: "M 588 372 L 800 372", label: "syslog", lx: 694, ly: 352 },
-    { n: "14", from: "admin", to: "monitor", decision: "Рұқсат", proto: "HTTPS, TLS", control: "MFA, рөл", why: "Офицер журналды оқиды. Мониторинг сегментінен серверге кіру осы жолмен ашылмайды.", kind: "log", d: "M 905 118 L 905 268", label: "оқу", lx: 962, ly: 190 },
-    { n: "15", from: "internet", to: "backup", decision: "Тыйым", proto: "кез келген", control: "NGFW, default deny", why: "Интернеттен серверге, көшірмеге және SIEM-ге тікелей жол жоқ.", kind: "deny" },
+    { n: "01", from: "internet", to: "dmz", decision: "Рұқсат", proto: "HTTPS, TLS 1.2+", control: "NGFW, WAF", why: "Сыртқы пайдаланушы порталды тек шекара және қолданбалы сүзгі арқылы көреді.", allowEffect: "Портал интернеттен ашылады. Кіру TLS және WAF-тан өтеді, ішкі VLAN көрінбейді.", denyEffect: "Сырттан портал жабылады. Үйдегі студент бағасын көрмейді. Ішкі қойма ашылмайды.", kind: "allow", d: "M 208 78 L 274 78 L 274 158 L 340 158", label: "TLS · NGFW", lx: 274, ly: 118 },
+    { n: "02", from: "internet", to: "admin", decision: "Рұқсат", proto: "IPsec немесе TLS VPN", control: "NGFW, MFA", why: "Қашықтағы қызметкер мен әкімші шекарада туннель ашады. Тоннель дерекқорға созылмайды.", allowEffect: "Қашықтағы әкімші VPN ашады. MFA өтпей VLAN 99 берілмейді.", denyEffect: "Үйден басқару жоқ. Серверді тек кампустағы әкімшілік сегменттен жөндеуге болады.", kind: "mgmt", d: "M 208 48 L 800 48", label: "VPN · MFA", lx: 500, ly: 32 },
+    { n: "03", from: "guest", to: "internet", decision: "Рұқсат", proto: "HTTPS шығыс", control: "NGFW", why: "Қонақ тек интернетке шығады. Ішкі мекенжайға маршрут жоқ.", allowEffect: "Қонақ тек интернетке шығады. Ішкі мекенжайға маршрут жоқ.", denyEffect: "Қонақ Wi-Fi интернетсіз қалады. Ішкі серверге жол бәрібір жабық.", kind: "allow", d: "M 118 128 L 118 92", label: "тек шығыс", lx: 72, ly: 110 },
+    { n: "04", from: "guest", to: "servers", decision: "Тыйым", proto: "кез келген", control: "NGFW, VLAN", why: "Қонақ желісі серверге, әкімшілікке және көшірмеге өтпейді. №6 тәуекел 7.", allowEffect: "Қонақ серверге жетеді. Тіркелмеген құрылғыдан LMS пен қоймаға жол ашылады, №6-7 қайтады.", denyEffect: "Қонақ желісінен серверге маршрут жоқ. №6-7 жабық қалады.", kind: "deny", d: "M 208 170 L 328 300", label: "тыйым", lx: 292, ly: 188 },
+    { n: "05", from: "users", to: "dmz", decision: "Рұқсат", proto: "HTTPS, TLS", control: "NGFW, WAF", why: "Кампустегі пайдаланушы порталды қонақпен бірдей жария арнамен ашады.", allowEffect: "Кампустегі студент пен оқытушы порталды HTTPS арқылы ашады.", denyEffect: "Ішкі пайдаланушы порталды көрмейді. Оқу журналы тоқтайды, қойма жабық күйінде қалады.", kind: "allow", d: "M 150 248 L 150 228 L 340 186", label: "HTTPS", lx: 214, ly: 214 },
+    { n: "06", from: "users", to: "servers", decision: "Рұқсат", proto: "LDAP немесе Kerberos, TLS", control: "IAM, MFA", why: "Пайдаланушы желісі тек сәйкестендіру қызметін көреді, қойма портын көрмейді.", allowEffect: "Пайдаланушы тек IAM-ды көреді. Құпия сөз LDAP немесе Kerberos арқылы тексеріледі.", denyEffect: "Кіру тоқтайды. Ешкім сессия ашпайды.", kind: "allow", d: "M 228 312 L 328 332", label: "LDAP · TLS", lx: 278, ly: 292 },
+    { n: "07", from: "dmz", to: "servers", decision: "Рұқсат", proto: "TCP/8443, TLS", control: "IPS", why: "Кері прокси тек LMS және IAM API-ге барады.", allowEffect: "Кері прокси тек API-ге барады, порт 8443. IPS ағынды қарайды.", denyEffect: "Портал беті ашық қалады, бірақ баға мен кіру API-ге жетпейді.", kind: "allow", d: "M 456 208 L 456 268", label: "TLS · IPS", lx: 522, ly: 238 },
+    { n: "08", from: "servers", to: "servers", decision: "Рұқсат", proto: "TCP/5432, TLS", control: "Қызметтік тіркелгі", why: "Қолданба қоймаға ішкі микросегментте барады. Пайдаланушы мен DMZ бұл портты көрмейді.", allowEffect: "Қолданба қоймаға қызметтік тіркелгімен, тек TCP/5432 арқылы кіреді.", denyEffect: "LMS бағаны сақтай алмайды. Қойма тұрады, қолданба оны оқи алмайды.", kind: "allow" },
+    { n: "09", from: "dmz", to: "servers", decision: "Тыйым", proto: "TCP/5432", control: "NGFW", why: "DMZ қоймаға тікелей қосылмайды.", allowEffect: "DMZ қойма портын көреді. Портал бұзылса ЖСН тікелей оқылады, №6-1 және №6-3 ашылады.", denyEffect: "DMZ қоймаға бармайды. Сұраныс тек API арқылы өтеді.", kind: "deny", d: "M 530 208 L 530 300", label: "5432", lx: 600, ly: 268 },
+    { n: "10", from: "servers", to: "backup", decision: "Рұқсат", proto: "Көшіру арнасы, TLS", control: "AES-256, бір бағыт", why: "Сервер суретті оқшау VLAN-ға жібереді. Кері өшіру құқығы жоқ.", allowEffect: "Сервер суретті оқшау VLAN-ға бір бағытта жібереді. Өндіріс тіркелгісі оны өшірмейді.", denyEffect: "Жаңа көшірме жасалмайды. Соңғы дана ескіреді, RPO бұзылады.", kind: "allow", d: "M 458 396 L 458 456", label: "AES · бір бағыт", lx: 560, ly: 426 },
+    { n: "11", from: "users", to: "backup", decision: "Тыйым", proto: "кез келген", control: "VLAN, default deny", why: "Пайдаланушы мен DMZ көшірме аймағына кірмейді.", allowEffect: "Пайдаланушы көшірмеге жетеді. Бопсалау немесе кездейсоқ өшіру №6-6-ны қайтарады.", denyEffect: "Көшірме VLAN-ы пайдаланушыдан жабық. №6-6 осы шекарамен ұсталады.", kind: "deny", d: "M 100 356 L 100 520 L 328 520", label: "тыйым", lx: 200, ly: 498 },
+    { n: "12", from: "admin", to: "servers", decision: "Рұқсат", proto: "TCP/22, bastion", control: "VPN, MFA", why: "Сервер мен DMZ басқаруы тек әкімшілік сегменттен, bastion арқылы.", allowEffect: "Басқару тек bastion және MFA арқылы. Күнделікті желіден SSH жоқ.", denyEffect: "Патч пен жөндеуге жол жоқ. Қызмет жұмысын жалғастырады, әкімші кіре алмайды.", kind: "mgmt", d: "M 800 90 L 700 90 L 700 324 L 588 324", label: "bastion", lx: 748, ly: 176 },
+    { n: "13", from: "servers", to: "monitor", decision: "Рұқсат", proto: "syslog, TLS/6514", control: "Бір бағытты журнал", why: "DMZ, сервер, әкімшілік және EDR журналы SIEM-ге кетеді. Кері басқару жоқ.", allowEffect: "Журнал SIEM-ге бір бағытта кетеді. Мониторингтен серверге кері кіру жоқ.", denyEffect: "SIEM соқыр қалады. Сүзгі мен MFA тоқтамайды, корреляция жоғалады.", kind: "log", d: "M 588 372 L 800 372", label: "syslog", lx: 694, ly: 352 },
+    { n: "14", from: "admin", to: "monitor", decision: "Рұқсат", proto: "HTTPS, TLS", control: "MFA, рөл", why: "Офицер журналды оқиды. Мониторинг сегментінен серверге кіру осы жолмен ашылмайды.", allowEffect: "Офицер журналды оқиды. Бұл жол серверге кіру бермейді.", denyEffect: "Офицер ескертуді көрмейді. Журнал жинала береді, жауап кешігеді.", kind: "log", d: "M 905 118 L 905 268", label: "оқу", lx: 962, ly: 190 },
+    { n: "15", from: "internet", to: "backup", decision: "Тыйым", proto: "кез келген", control: "NGFW, default deny", why: "Интернеттен серверге, көшірмеге және SIEM-ге тікелей жол жоқ.", allowEffect: "Интернеттен көшірмеге жол ашылады. Сыртқы шабуыл соңғы дананы шифрлай алады.", denyEffect: "Көшірме сырттан көрінбейді. Интернеттен тікелей жол жоқ.", kind: "deny" },
   ],
   layers: [
     { name: "Физикалық", aim: "Үй-жай мен жабдық", how: "Сервер бөлмесінің құлпы, кіруді бақылау, бейнебақылау. Үзіліссіз қуат көзі қысқа электр үзілісін көтереді." },
@@ -281,9 +281,10 @@ function lab8Svg() {
     .filter((link) => link.d)
     .map((link) => {
       const width = Math.ceil(link.label.length * 7.1 + 18);
+      const deny = link.decision === "Тыйым" ? " is-deny" : "";
       return `
-        <path class="arch-edge arch-${link.kind}" data-from="${link.from}" data-to="${link.to}" d="${link.d}" />
-        <g class="arch-tag${link.kind === "deny" ? " is-deny" : ""}" data-from="${link.from}" data-to="${link.to}">
+        <path class="arch-edge arch-${link.kind}" data-link="${link.n}" data-from="${link.from}" data-to="${link.to}" d="${link.d}" />
+        <g class="arch-tag${deny}" data-link="${link.n}" data-from="${link.from}" data-to="${link.to}">
           <rect x="${link.lx - width / 2}" y="${link.ly - 10}" width="${width}" height="20" rx="9"></rect>
           <text x="${link.lx}" y="${link.ly + 1}">${link.label}</text>
         </g>`;
@@ -315,6 +316,80 @@ function bindLab8() {
   const svg = root.querySelector(".arch-svg");
   const panel = root.querySelector("#arch-panel");
   const note = root.querySelector("#flow-note");
+  const outcome = root.querySelector("#flow-outcome");
+  const choice = {};
+  let currentZone = "all";
+  LAB8.links.forEach((link) => {
+    choice[link.n] = link.decision === "Рұқсат" ? "allow" : "deny";
+  });
+
+  function designedMode(link) {
+    return link.decision === "Рұқсат" ? "allow" : "deny";
+  }
+
+  function paintLink(link) {
+    if (!svg) return;
+    const mode = choice[link.n];
+    const path = svg.querySelector(`.arch-edge[data-link="${link.n}"]`);
+    const tag = svg.querySelector(`.arch-tag[data-link="${link.n}"]`);
+    const visual = mode === "deny" ? "deny" : link.kind === "deny" ? "allow" : link.kind;
+    if (path) {
+      path.classList.remove("arch-allow", "arch-deny", "arch-mgmt", "arch-log");
+      path.classList.add(`arch-${visual}`);
+    }
+    if (tag) tag.classList.toggle("is-deny", mode === "deny");
+  }
+
+  function paintRow(link) {
+    const row = root.querySelector(`#flow-table tr[data-link="${link.n}"]`);
+    if (!row) return;
+    const mode = choice[link.n];
+    const designed = designedMode(link);
+    row.classList.toggle("is-off-design", mode !== designed);
+    row.querySelectorAll("[data-set]").forEach((btn) => {
+      const on = btn.dataset.set === mode;
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    const effect = row.querySelector(".flow-effect");
+    if (!effect) return;
+    effect.textContent = mode === "allow" ? link.allowEffect : link.denyEffect;
+    effect.classList.toggle("is-risk", mode !== designed && mode === "allow");
+    effect.classList.toggle("is-break", mode !== designed && mode === "deny");
+  }
+
+  function summarize() {
+    if (!outcome) return;
+    const opened = [];
+    const broken = [];
+    LAB8.links.forEach((link) => {
+      const now = choice[link.n];
+      if (now === designedMode(link)) return;
+      const name = `${link.n} ${lab8ZoneName(link.from)} → ${lab8ZoneName(link.to)}`;
+      if (now === "allow") opened.push(name);
+      else broken.push(name);
+    });
+    if (!opened.length && !broken.length) {
+      outcome.className = "flow-outcome is-ok";
+      outcome.textContent = "Қазір жоба шешімі. Рұқсатты бассаңыз жол ашылады. Тыйымды бассаңыз жол жабылады. Соңғы бағанда сол сәтте не болатыны жазылады.";
+      return;
+    }
+    const bits = [];
+    if (opened.length) bits.push(`Ашылған тәуекел: ${opened.join("; ")}.`);
+    if (broken.length) bits.push(`Кесілген қызмет: ${broken.join("; ")}.`);
+    outcome.className = "flow-outcome is-warn";
+    outcome.textContent = bits.join(" ");
+  }
+
+  function applyFlow(n, mode) {
+    const link = LAB8.links.find((item) => item.n === n);
+    if (!link || (mode !== "allow" && mode !== "deny")) return;
+    choice[n] = mode;
+    paintLink(link);
+    paintRow(link);
+    summarize();
+    if (currentZone !== "all") applyZone(currentZone);
+  }
 
   function applyReq(kind) {
     root.querySelectorAll("[data-req-filter]").forEach((chip) => {
@@ -336,6 +411,7 @@ function bindLab8() {
   }
 
   function applyZone(id) {
+    currentZone = id;
     root.querySelectorAll("[data-zone-filter]").forEach((chip) => {
       const on = chip.dataset.zoneFilter === id;
       chip.classList.toggle("is-on", on);
@@ -369,9 +445,9 @@ function bindLab8() {
     }
     const shown = root.querySelectorAll("#flow-table tbody tr:not([hidden])").length;
     if (id === "all") {
-      if (note) note.textContent = `${LAB8.links.length} байланыс. Аймақты таңдасаңыз, сол аймақтың кірісі мен шығысы қалады.`;
+      if (note) note.textContent = `${LAB8.links.length} байланыс. Аймақты таңдасаңыз, сол аймақтың кірісі мен шығысы қалады. Рұқсат жолды ашады, тыйым жабады.`;
       if (panel) {
-        panel.innerHTML = "<h3>Сенім аймақтары</h3><p>Сызбадан аймақты таңдаңыз. Тұтас сызық — дерек ағыны. Күлгін үзік — басқару. Көк — журнал. Қызыл үзік — тыйым.</p>";
+        panel.innerHTML = "<h3>Сенім аймақтары</h3><p>Сызбадан аймақты таңдаңыз. Тұтас сызық — дерек ағыны. Күлгін үзік — басқару. Көк — журнал. Қызыл үзік — тыйым. Кестеде шешімді ауыстырсаңыз, сызық түсі де ауысады.</p>";
       }
       return;
     }
@@ -379,7 +455,12 @@ function bindLab8() {
     if (!zone || !panel) return;
     const flows = LAB8.links
       .filter((link) => link.from === id || link.to === id)
-      .map((link) => `<li><strong>${link.decision}.</strong> ${lab8ZoneName(link.from)} → ${lab8ZoneName(link.to)}: ${link.proto}. ${link.control}.</li>`)
+      .map((link) => {
+        const mode = choice[link.n];
+        const word = mode === "allow" ? "Рұқсат" : "Тыйым";
+        const effect = mode === "allow" ? link.allowEffect : link.denyEffect;
+        return `<li><strong>${word}.</strong> ${lab8ZoneName(link.from)} → ${lab8ZoneName(link.to)}: ${link.proto}. ${effect}</li>`;
+      })
       .join("");
     if (note) note.textContent = `${zone.name}: ${shown} байланыс.`;
     panel.innerHTML = `<h3>${zone.name}</h3><p>${zone.text}</p><p class="meta"><span>Деңгей</span>${zone.level} · VLAN ${zone.vlan}</p><ul>${flows}</ul>`;
@@ -389,6 +470,16 @@ function bindLab8() {
     const req = event.target.closest("[data-req-filter]");
     if (req) {
       applyReq(req.dataset.reqFilter);
+      return;
+    }
+    const setBtn = event.target.closest("[data-set]");
+    if (setBtn) {
+      const row = setBtn.closest("tr[data-link]");
+      if (row) applyFlow(row.dataset.link, setBtn.dataset.set);
+      return;
+    }
+    if (event.target.closest("[data-flow-reset]")) {
+      LAB8.links.forEach((link) => applyFlow(link.n, designedMode(link)));
       return;
     }
     const chip = event.target.closest("[data-zone-filter]");
@@ -487,15 +578,22 @@ function viewLab8() {
 
   const flows = LAB8.links
     .map((link) => {
-      const mark = link.decision === "Рұқсат" ? "rule-allow" : "rule-deny";
+      const allowOn = link.decision === "Рұқсат";
+      const effect = allowOn ? link.allowEffect : link.denyEffect;
       return `
-        <tr data-zones="${link.from} ${link.to}">
+        <tr data-link="${link.n}" data-zones="${link.from} ${link.to}">
           <th scope="row">${link.n}</th>
-          <td class="${mark}">${link.decision}</td>
+          <td>
+            <div class="flow-switch">
+              <button type="button" class="flow-btn is-allow${allowOn ? " is-on" : ""}" data-set="allow" aria-pressed="${allowOn ? "true" : "false"}">Рұқсат</button>
+              <button type="button" class="flow-btn is-deny${allowOn ? "" : " is-on"}" data-set="deny" aria-pressed="${allowOn ? "false" : "true"}">Тыйым</button>
+            </div>
+            <span class="flow-design">Жоба: ${link.decision}</span>
+          </td>
           <td>${lab8ZoneName(link.from)} → ${lab8ZoneName(link.to)}</td>
           <td>${link.proto}</td>
           <td>${link.control}</td>
-          <td>${link.why}</td>
+          <td class="flow-effect">${effect}</td>
         </tr>`;
     })
     .join("");
@@ -727,7 +825,7 @@ function viewLab8() {
         <div class="process-grid">${zoneCards}</div>
         <div class="block-head reveal">
           <h2>Архитектуралық сызба</h2>
-          <p>Аймақты басыңыз. Тұтас сызық — дерек. Күлгін үзік — басқару. Көк — журнал. Қызыл үзік — тыйым.</p>
+          <p>Аймақты басыңыз. Тұтас сызық — дерек. Күлгін үзік — басқару. Көк — журнал. Қызыл үзік — тыйым. Төмендегі кестеде Рұқсат пен Тыйымды ауыстырсаңыз, сызық түсі мен салдар бірге өзгереді.</p>
         </div>
         <div class="dep-wrap reveal">${lab8Svg()}</div>
         <p class="dep-legend reveal">
@@ -741,7 +839,9 @@ function viewLab8() {
           <p>Сызбадан аймақты таңдаңыз. Тұтас сызық — дерек ағыны. Күлгін үзік — басқару. Көк — журнал. Қызыл үзік — тыйым.</p>
         </article>
         <div class="chip-row reveal" id="zone-filters">${zoneChips}</div>
-        <p class="role-note reveal" id="flow-note">${LAB8.links.length} байланыс. Аймақты таңдасаңыз, сол аймақтың кірісі мен шығысы қалады.</p>
+        <p class="role-note reveal" id="flow-note">${LAB8.links.length} байланыс. Аймақты таңдасаңыз, сол аймақтың кірісі мен шығысы қалады. Рұқсат жолды ашады, тыйым жабады.</p>
+        <p class="flow-outcome is-ok" id="flow-outcome">Қазір жоба шешімі. Рұқсатты бассаңыз жол ашылады. Тыйымды бассаңыз жол жабылады. Соңғы бағанда сол сәтте не болатыны жазылады.</p>
+        <p class="reveal"><button type="button" class="chip" data-flow-reset>Жоба шешіміне қайтару</button></p>
         <div class="table-wrap reveal">
           <table class="stride-matrix access-matrix lab8-flow" id="flow-table">
             <thead>
@@ -751,7 +851,7 @@ function viewLab8() {
                 <th>Бағыт</th>
                 <th>Хаттама</th>
                 <th>Қорғаныс</th>
-                <th>Не үшін</th>
+                <th>Не болады</th>
               </tr>
             </thead>
             <tbody>${flows}</tbody>

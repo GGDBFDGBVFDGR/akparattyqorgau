@@ -4,6 +4,9 @@
   const WIFI = { ssid: "SmartCampus", password: "CampusWiFi!26" };
   const STORE = "campus-db-v3";
   const SESSION = "campus-session-v3";
+  const FACE_STORE = "campus-faces-v1";
+  const BACKUP_KEY = "campus-backup-key";
+  const RPO_MS = { registry: 60 * 60 * 1000, lms: 4 * 60 * 60 * 1000, acs: 24 * 60 * 60 * 1000 };
 
   const ROLES = {
     student: "Студент",
@@ -591,7 +594,7 @@
   }
   const PEOPLE = [
     ["abylai", "Абдрахманов Абылай", "student"],
-    ["aslanbek", "Ғаниеков Асланбек", "student"],
+    ["aslanbek", "Асылбеков Асланбек", "student"],
     ["mukhan", "Ауез Мухан", "student"],
     ["nurai", "Жамбылова Нурай", "student"],
     ["sultan", "Касымов Сұлтан", "student"],
@@ -693,6 +696,26 @@
   let enrollStream = null;
 
   function loadDb() {
+    return attachFaces(readDb());
+  }
+
+  function attachFaces(target) {
+    let rows = null;
+    try {
+      const raw = JSON.parse(localStorage.getItem(FACE_STORE));
+      if (Array.isArray(raw)) rows = raw;
+    } catch (_) {}
+    if (!rows) rows = target.faces || [];
+    const known = new Set((target.users || []).map((u) => u.id));
+    target.faces = rows
+      .filter((f) => known.has(f.userId) && faceVectors(f).length)
+      .map(({ image, ...f }) => f);
+    sessionStorage.setItem(STORE, JSON.stringify(target));
+    localStorage.setItem(FACE_STORE, JSON.stringify(target.faces));
+    return target;
+  }
+
+  function readDb() {
     try {
       const raw = sessionStorage.getItem(STORE);
       if (raw) {
@@ -726,12 +749,30 @@
           saved.users.push({ id: "u-sysadmin", login: "sysadmin", name: "Жүйелік әкімші", role: "sysadmin" });
           patched = true;
         }
-        if (!saved.backup) {
-          saved.backup = { copies: [], restores: [] };
+        if (!saved.backup || !Array.isArray(saved.backup.copies) || !Array.isArray(saved.backup.restores)) {
+          saved.backup = { copies: [], restores: [], incidentAt: 0 };
+          patched = true;
+        }
+        if (saved.backup.copies.some((item) => !item.cipher)) {
+          saved.backup.copies = saved.backup.copies.filter((item) => item.cipher);
+          patched = true;
+        }
+        if (typeof saved.backup.incidentAt !== "number") {
+          saved.backup.incidentAt = 0;
           patched = true;
         }
         if (!Array.isArray(saved.faces)) {
           saved.faces = [];
+          patched = true;
+        }
+        for (const row of [...(saved.users || []), ...(saved.students || [])]) {
+          if (row.name === "Ғаниеков Асланбек") {
+            row.name = "Асылбеков Асланбек";
+            patched = true;
+          }
+        }
+        if (saved.faces.some((f) => !Array.isArray(f.vectors) || "image" in f)) {
+          saved.faces = saved.faces.filter((f) => Array.isArray(f.vectors)).map(({ image, ...f }) => f);
           patched = true;
         }
         if (CampusDbms.patch(saved)) patched = true;
@@ -747,6 +788,7 @@
 
   function saveDb() {
     sessionStorage.setItem(STORE, JSON.stringify(db));
+    localStorage.setItem(FACE_STORE, JSON.stringify(db.faces || []));
   }
 
   function loadSession() {
@@ -765,7 +807,7 @@
   }
 
   function resetDemo() {
-    db = seed();
+    db = attachFaces(seed());
     saveDb();
     saveSession(null);
     loginStep = "password";
@@ -791,6 +833,202 @@
     return new Date(ts).toLocaleString("kk-KZ", { dateStyle: "medium", timeStyle: "short" });
   }
 
+  let backupBooting = false;
+  let backupSeedFailed = false;
+
+  function ensureBackupShape() {
+    if (!db.backup || !Array.isArray(db.backup.copies) || !Array.isArray(db.backup.restores)) {
+      db.backup = { copies: [], restores: [], incidentAt: 0 };
+    }
+    if (typeof db.backup.incidentAt !== "number") db.backup.incidentAt = 0;
+  }
+
+  function lastSundayAtTwo() {
+    const stamp = new Date();
+    stamp.setHours(2, 0, 0, 0);
+    const back = stamp.getDay() === 0 ? 0 : stamp.getDay();
+    stamp.setDate(stamp.getDate() - back);
+    if (stamp.getTime() > Date.now()) stamp.setDate(stamp.getDate() - 7);
+    return stamp.getTime();
+  }
+
+  function bytesToB64(bytes) {
+    let text = "";
+    bytes.forEach((b) => {
+      text += String.fromCharCode(b);
+    });
+    return btoa(text);
+  }
+
+  function b64ToBytes(text) {
+    const raw = atob(text);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+  }
+
+  async function backupCryptoKey() {
+    let stored = sessionStorage.getItem(BACKUP_KEY);
+    if (!stored) {
+      stored = bytesToB64(crypto.getRandomValues(new Uint8Array(32)));
+      sessionStorage.setItem(BACKUP_KEY, stored);
+    }
+    return crypto.subtle.importKey("raw", b64ToBytes(stored), { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+  }
+
+  async function sha256Text(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function liveBody() {
+    return {
+      students: db.students,
+      grades: db.grades,
+      papers: db.papers || [],
+      pending: db.pending || [],
+      acs: {
+        rules: db.acs?.rules || [],
+        blocked: db.acs?.blocked || {},
+        passes: db.acs?.passes || [],
+        changes: db.acs?.changes || [],
+      },
+    };
+  }
+
+  function bodyCounts(body) {
+    return {
+      students: body.students?.length || 0,
+      grades: body.grades?.length || 0,
+      papers: body.papers?.length || 0,
+      passes: body.acs?.passes?.length || 0,
+    };
+  }
+
+  function liveCounts() {
+    return bodyCounts(liveBody());
+  }
+
+  function copyClean(copy) {
+    if (!db.backup?.incidentAt) return true;
+    return copy.at < db.backup.incidentAt;
+  }
+
+  function rpoText(copy) {
+    const age = Date.now() - copy.at;
+    const parts = [
+      ["Тіркеу", age <= RPO_MS.registry],
+      ["LMS", age <= RPO_MS.lms],
+      ["ACS", age <= RPO_MS.acs],
+    ];
+    return parts.map(([name, ok]) => `${name} ${ok ? "ішінде" : "тыс"}`).join(", ");
+  }
+
+  function usableCopies() {
+    return (db.backup?.copies || []).filter((item) => item.cipher && item.hash);
+  }
+
+  function cleanVlanExists() {
+    return usableCopies().some((item) => item.place === "vlan" && copyClean(item));
+  }
+
+  function placeLabel(place) {
+    return place === "offline" ? "Офлайн сейф" : "Backup VLAN";
+  }
+
+  function kindLabel(kind) {
+    if (kind === "log") return "Журнал";
+    if (kind === "diff") return "Дифференциал";
+    return "Толық";
+  }
+
+  async function writeCopy({ kind, place, at, label }) {
+    ensureBackupShape();
+    const plain = JSON.stringify(liveBody());
+    const hash = await sha256Text(plain);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await backupCryptoKey();
+    const raw = new Uint8Array(
+      await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plain))
+    );
+    const copy = {
+      id: "b" + Date.now(),
+      at: at || Date.now(),
+      label,
+      kind,
+      place,
+      hash,
+      iv: bytesToB64(iv),
+      cipher: bytesToB64(raw),
+      counts: liveCounts(),
+      immutable: place === "vlan",
+    };
+    db.backup.copies.unshift(copy);
+    return copy;
+  }
+
+  async function openCopy(copy) {
+    if (!copy?.cipher || !copy.iv || !copy.hash) return { ok: false, reason: "көшірме дерексіз" };
+    try {
+      const key = await backupCryptoKey();
+      const buf = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: b64ToBytes(copy.iv) },
+        key,
+        b64ToBytes(copy.cipher)
+      );
+      const plain = new TextDecoder().decode(buf);
+      const hash = await sha256Text(plain);
+      if (hash !== copy.hash) return { ok: false, reason: "хэш каталогпен сәйкес емес" };
+      const body = JSON.parse(plain);
+      if (!Array.isArray(body.students) || !Array.isArray(body.grades)) {
+        return { ok: false, reason: "нүкте құрылымы жарамсыз" };
+      }
+      return { ok: true, body, hash };
+    } catch (_) {
+      return { ok: false, reason: "тұтастық бұзылған" };
+    }
+  }
+
+  function applyBody(body) {
+    db.students = body.students;
+    db.grades = body.grades;
+    db.papers = body.papers || [];
+    db.pending = body.pending || [];
+    db.acs = db.acs || {};
+    db.acs.rules = body.acs?.rules || db.acs.rules;
+    db.acs.blocked = body.acs?.blocked || {};
+    db.acs.passes = body.acs?.passes || [];
+    db.acs.changes = body.acs?.changes || [];
+  }
+
+  async function ensureOfflineSeed() {
+    if (backupBooting || backupSeedFailed) return;
+    ensureBackupShape();
+    if (db.backup.copies.some((item) => item.place === "offline" && item.cipher)) return;
+    if (!crypto.subtle) {
+      backupSeedFailed = true;
+      flash = { type: "bad", text: "Бұл бетте шифрлау жоқ. Көшірме жасалмады." };
+      render();
+      return;
+    }
+    backupBooting = true;
+    try {
+      await writeCopy({
+        kind: "full",
+        place: "offline",
+        at: lastSundayAtTwo(),
+        label: "Толық · Офлайн сейф · жексенбі 02:00",
+      });
+      saveDb();
+    } catch (_) {
+      backupSeedFailed = true;
+      flash = { type: "bad", text: "Офлайн көшірме жасалмады." };
+    } finally {
+      backupBooting = false;
+    }
+    if (route().page === "backup") render();
+  }
+
   function log(actor, action, detail) {
     db.audit.unshift({
       id: "a" + Date.now(),
@@ -812,11 +1050,7 @@
   }
 
   function faceFor(userId) {
-    return (db.faces || []).find((f) => f.userId === userId && f.image);
-  }
-
-  function faceShot(record) {
-    return typeof record?.image === "string" && record.image.startsWith("data:image/jpeg") ? record.image : "";
+    return (db.faces || []).find((f) => f.userId === userId && faceVectors(f).length);
   }
 
   function route() {
@@ -836,7 +1070,7 @@
       return items;
     }
     if (role === "sysadmin") {
-      items.push({ href: "#backup", id: "backup", label: "Көшірме" });
+      items.push({ href: "#backup", id: "backup", label: "Резервное копирование" });
       return items;
     }
     if (role === "dean") {
@@ -1093,7 +1327,7 @@
                        </svg>
                      </div>
                      <p class="face-name">${faceName}</p>
-                     <p class="face-hint" id="face-hint">${scanning ? "Камера ашық. Бет сақталған үлгімен салыстырылуда." : "Кадр сақталмайды. Үлгіге сай келмесе сессия ашылмайды."}</p>
+                     <p class="face-hint" id="face-hint">${scanning ? "Беттің векторы сақталған үлгімен салыстырылуда." : "Фото сақталмайды. Бет үлгіге сай келмесе сессия ашылмайды."}</p>
                      <button class="btn btn-primary" id="face-scan" type="button"${scanning ? " disabled" : ""}>${scanning ? "Тексерілуде…" : "Face ID"}</button>
                      ${faceCameraDenied ? `<button class="btn btn-ghost" id="face-code" type="button">Кодпен растау</button>` : ""}
                    </div>`
@@ -1144,12 +1378,15 @@
         ? `Қалпына келтіру нүктесі: ${(db.dbms?.points || []).length}. Орналасқан жері: ДҚ сервері, сервер бөлмесі.`
         : session.role === "building"
           ? "Орналасқан жері: ACS сервері және есік контроллерлері. Контроллерлер VLAN 30-да."
-          : session.role === "sysadmin"
-            ? "Көшірме файлының іші бұл экранда жоқ. Бекіту қауіпсіздік әкімшісінде."
+            : session.role === "sysadmin"
+            ? "№7 бойынша 3-2-1: жұмыс дерек, Backup VLAN, офлайн сейф. Көшірме AES-256-GCM. Кілт бөлек. Файл ашылмайды, қайтаруды өзіңіз бекітпейсіз."
             : "Қол қойылмаған құжат күшінде емес. Баға мен тіркеу бұл бөлмеде жоқ.";
+      const backupBtn = session.role === "sysadmin"
+        ? `<p class="backup-open"><a class="btn btn-primary" href="#backup">Резервное копирование</a></p>`
+        : "";
       return shell(
         "Басты бет",
-        `${cards}<section class="panel"><h2>Сіздің контур</h2><p>${esc(hint)}</p><p class="note">${esc(extra)}</p></section>`
+        `${cards}<section class="panel"><h2>Сіздің контур</h2><p>${esc(hint)}</p><p class="note">${esc(extra)}</p>${backupBtn}</section>`
       );
     }
     const schedule = `
@@ -1308,14 +1545,14 @@
       .join("");
     const openFaces = db.users.filter((u) => !faceFor(u.id));
     const faceOptions = openFaces
-      .map((u) => `<option value="${esc(u.id)}">${esc(u.name)} · ${esc(ROLES[u.role])}</option>`)
+      .map((u) => `<option value="${esc(u.id)}">${esc(u.name)} · ${esc(ROLES[u.role])} · ${esc(u.login)}</option>`)
       .join("");
     const faceRows = (db.faces || [])
       .map((f) => {
         const person = db.users.find((u) => u.id === f.userId);
-        const shot = faceShot(f);
+        const count = faceVectors(f).length;
         return `<tr>
-          <td>${shot ? `<img class="face-thumb" src="${shot}" alt="">` : "—"}</td>
+          <td>${count ? `${count} × 128 сан` : "—"}</td>
           <td>${esc(person?.name || "—")}</td>
           <td>${esc(person ? ROLES[person.role] : "—")}</td>
           <td>${fmt(f.at)}</td>
@@ -1356,11 +1593,13 @@
           ${
             openFaces.length
               ? `<form class="form" id="face-enroll">
-                  <label><span>Адам</span><select name="user">${faceOptions}</select></label>
+                  <label><span>Іздеу</span><input type="search" id="face-find" placeholder="Аты, тегі немесе логин" autocomplete="off"></label>
+                  <label><span>Адам</span><select name="user" id="face-user" required>${faceOptions}</select></label>
+                  <p class="face-hint" id="face-find-count">${openFaces.length} адам тіркелмеген.</p>
                   <div class="face-stage enroll-stage">
                     <video id="enroll-video" autoplay playsinline muted></video>
                   </div>
-                  <p class="face-hint" id="enroll-hint">Адам осы жерде тұрады. Камераны ашып, бір кадрды базаға сақтаңыз.</p>
+                  <p class="face-hint" id="enroll-hint">Адам осы жерде тұрады. Камераны ашыңыз. Сақтау кезінде 3 кадр алынады.</p>
                   <div class="actions">
                     <button class="btn btn-ghost" id="face-enroll-cam" type="button">Камераны ашу</button>
                     <button class="btn btn-primary" id="face-enroll-save" type="submit" disabled>Базаға сақтау</button>
@@ -1368,7 +1607,7 @@
                 </form>`
               : `<p>Тіркелмеген адам қалмады.</p>`
           }
-          <p class="note">Кадр faces кестесіне жазылады. Кіру кезіндегі тексеру жаңа сурет қоспайды. Үлгіге сай келмесе сессия ашылмайды.</p>
+          <p class="note">Фото сақталмайды. Камера әр кадрдан 128 сандық вектор алады, faces кестесіне 3 вектор жазылады. Кірген кезде жаңа кадрдың векторы осылармен салыстырылады: ең жақын қашықтық ${FACE_MATCH_DISTANCE}-тен кіші болмаса, сессия ашылмайды.</p>
           <table><thead><tr><th>Үлгі</th><th>Адам</th><th>Рөл</th><th>Қашан</th><th>Кім берді</th><th></th></tr></thead><tbody>${faceRows || "<tr><td colspan='6'>Әлі жоқ</td></tr>"}</tbody></table>
         </section>
         <section class="panel">
@@ -1604,34 +1843,105 @@
   }
 
 
+  function countLine(counts) {
+    const row = counts || { students: 0, grades: 0, papers: 0, passes: 0 };
+    return `${row.students} студент · ${row.grades} баға · ${row.passes} өткізу`;
+  }
+
   function viewBackup() {
-    const copies = (db.backup?.copies || [])
-      .map((item) => `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>Іші жабық</td></tr>`)
+    ensureBackupShape();
+    const now = liveCounts();
+    const vlan = usableCopies().filter((item) => item.place === "vlan").length;
+    const offline = usableCopies().filter((item) => item.place === "offline").length;
+    const copies = usableCopies()
+      .map((item) => {
+        const state = copyClean(item) ? "Таза" : "Таза емес";
+        const lock = item.immutable ? "Өзгертілмейді" : "Сейф";
+        return `<tr>
+          <td>${fmt(item.at)}</td>
+          <td>${esc(kindLabel(item.kind))}</td>
+          <td>${esc(placeLabel(item.place))}</td>
+          <td>${esc(item.hash.slice(0, 16))}</td>
+          <td>${esc(countLine(item.counts))}</td>
+          <td>${esc(rpoText(item))}</td>
+          <td><span class="pill ${copyClean(item) ? "ok" : "stop"}">${state}</span> ${lock}</td>
+        </tr>`;
+      })
       .join("");
-    const restores = (db.backup?.restores || [])
-      .map((item) => `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>${item.state === "wait" ? "Қауіпсіздік әкімшісінде" : item.state === "ok" ? "Бекітілді" : "Қайтарылды"}</td></tr>`)
+    const restores = (db.backup.restores || [])
+      .map((item) => {
+        const state = item.state === "wait" ? "Қауіпсіздік әкімшісінде" : item.state === "ok" ? "Бекітілді" : "Қайтарылды";
+        return `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>${esc(item.hash || "—")}</td><td>${state}</td></tr>`;
+      })
       .join("");
-    const options = (db.backup?.copies || [])
-      .map((item) => `<option value="${esc(item.id)}">${esc(item.label)}</option>`)
+    const options = usableCopies()
+      .map((item) => {
+        const mark = copyClean(item) ? "таза" : "таза емес";
+        return `<option value="${esc(item.id)}">${esc(item.label)} · ${fmt(item.at)} · ${mark}</option>`;
+      })
       .join("");
+    const incident = db.backup.incidentAt
+      ? `<p class="note warn">Оқиға белгісі: ${fmt(db.backup.incidentAt)}. Осыдан кейінгі дана таза емес.</p>`
+      : `<p class="note">Оқиға белгісі жоқ. Белгі қойылса, одан кейінгі көшірме қайтаруға жарамайды.</p>`;
     return shell(
-      "Көшірме",
+      "Резервное копирование",
       `<div class="stack">
         <section class="panel">
+          <h2>3-2-1 сызбасы</h2>
+          <div class="stat-row">
+            <div class="stat"><em>1 · Жұмыс дерек</em><strong>${esc(countLine(now))}</strong></div>
+            <div class="stat"><em>2 · Backup VLAN</em><strong>${vlan}</strong></div>
+            <div class="stat"><em>3 · Офлайн сейф</em><strong>${offline}</strong></div>
+          </div>
+          <p class="note">№7 жұмыс. Көшірме AES-256-GCM. Кілт жазбадан бөлек, экранда жоқ. ЖСН мен баға ашылмайды. VLAN суретін өндіріс тіркелгісі өшірмейді. Ең жаңа дана өзі таңдалмайды.</p>
+        </section>
+        <section class="panel">
           <h2>Көшірме жасау</h2>
-          <button class="btn btn-primary" type="button" id="backup-make">Көшірме жұмысын іске қосу</button>
-          <p class="note">Файлдың іші ашылмайды. ЖСН мен баға бұл экранда жоқ.</p>
-          <table><thead><tr><th>Уақыт</th><th>Белгі</th><th>Ішінде</th></tr></thead><tbody>${copies || "<tr><td colspan='3'>Әлі жоқ</td></tr>"}</tbody></table>
+          <form class="form form-grid" id="backup-make">
+            <label><span>Түрі</span>
+              <select name="kind">
+                <option value="log">Журнал · 15 минут</option>
+                <option value="diff">Дифференциал · күнде</option>
+                <option value="full">Толық</option>
+              </select>
+            </label>
+            <label><span>Орын</span>
+              <select name="place">
+                <option value="vlan">Backup VLAN · өзгертілмейді</option>
+                <option value="offline">Офлайн сейф</option>
+              </select>
+            </label>
+            <button class="btn btn-primary" type="submit">Көшірме жұмысын іске қосу</button>
+          </form>
+          <p class="note">Журнал мен дифференциал тек VLAN-да. Офлайн сейфке толық экспорт жазылады. Нүкте осы сәттегі жол санын сақтайды.</p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Уақыт</th><th>Түрі</th><th>Орын</th><th>Хэш</th><th>Жол саны</th><th>RPO</th><th>Күй</th></tr></thead>
+              <tbody>${copies || "<tr><td colspan='7'>Әлі жоқ</td></tr>"}</tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Оқиға және жаттығу</h2>
+          ${incident}
+          <div class="actions">
+            <button class="btn btn-ghost" type="button" id="backup-incident">${db.backup.incidentAt ? "Белгіні жабу" : "Оқиға белгісін қою"}</button>
+            <button class="btn btn-ghost" type="button" id="backup-drill">Жаттығу: бір баға жолын жасыру</button>
+          </div>
+          <p class="note">Жасырылған жолдың мәні бұл экранда жоқ. Қайтару тек таңдалған таза нүктеден, қауіпсіздік әкімшісі бекіткен соң болады.</p>
         </section>
         <section class="panel">
           <h2>Қалпына келтіруді сұрау</h2>
           <form class="form" id="backup-restore">
-            <label><span>Көшірме</span><select name="copy" ${options ? "" : "disabled"}>${options || "<option>Көшірме жоқ</option>"}</select></label>
-            <button class="btn btn-ghost" type="submit">Сұрау</button>
-            <button class="btn btn-ghost" type="button" id="backup-self">Өзім бекіту</button>
+            <label><span>Нүкте</span><select name="copy" required ${options ? "" : "disabled"}><option value="">Нүктені таңдаңыз</option>${options}</select></label>
+            <div class="actions">
+              <button class="btn btn-primary" type="submit" ${options ? "" : "disabled"}>Сұрау</button>
+              <button class="btn btn-ghost" type="button" id="backup-check">Хэшін тексеру</button>
+              <button class="btn btn-ghost" type="button" id="backup-self">Өзім бекіту</button>
+            </div>
           </form>
-          <p class="note">Бекіту қауіпсіздік әкімшісінде. Жүйе әкімшісі өз сұрауын бекітпейді.</p>
-          <table><thead><tr><th>Уақыт</th><th>Көшірме</th><th>Күй</th></tr></thead><tbody>${restores || "<tr><td colspan='3'>Әлі жоқ</td></tr>"}</tbody></table>
+          <p class="note">Таза емес дана алынбайды. VLAN-да таза сурет тұрса, офлайн сейф ашылмайды. Бекіту қауіпсіздік әкімшісінде.</p>
+          <table><thead><tr><th>Уақыт</th><th>Нүкте</th><th>Хэш</th><th>Күй</th></tr></thead><tbody>${restores || "<tr><td colspan='4'>Әлі жоқ</td></tr>"}</tbody></table>
         </section>
         <section class="panel">
           <button class="btn btn-ghost" type="button" id="backup-read">Қойма өрісін оқу</button>
@@ -1641,19 +1951,34 @@
   }
 
   function viewRestore() {
-    const rows = (db.backup?.restores || [])
+    ensureBackupShape();
+    const rows = (db.backup.restores || [])
       .map((item) => {
         const buttons = item.state === "wait"
           ? `<div class="actions"><button class="btn btn-primary" type="button" data-restore="${esc(item.id)}" data-state="ok">Бекіту</button><button class="btn btn-ghost" type="button" data-restore="${esc(item.id)}" data-state="no">Қайтару</button></div>`
           : item.state === "ok" ? "Бекітілді" : "Қайтарылды";
-        return `<tr><td>${fmt(item.at)}</td><td>${esc(item.label)}</td><td>${esc(item.authorName)}</td><td>Іші жабық</td><td>${buttons}</td></tr>`;
+        return `<tr>
+          <td>${fmt(item.at)}</td>
+          <td>${esc(item.label)}</td>
+          <td>${esc(placeLabel(item.place))}</td>
+          <td>${esc(item.hash || "—")}</td>
+          <td>${esc(item.counts ? countLine(item.counts) : "—")}</td>
+          <td>${esc(item.rpo || "—")}</td>
+          <td>${esc(item.authorName)}</td>
+          <td>${buttons}</td>
+        </tr>`;
       })
       .join("");
     return shell(
       "Қалпына келтіру",
       `<section class="panel">
-        <p class="note">Қауіпсіздік әкімшісі қалпына келтіруді бекітеді. Көшірме файлын ашпайды, қойма өрісін оқымайды.</p>
-        <table><thead><tr><th>Уақыт</th><th>Көшірме</th><th>Автор</th><th>Ішінде</th><th></th></tr></thead><tbody>${rows || "<tr><td colspan='5'>Кезек бос</td></tr>"}</tbody></table>
+        <p class="note">Қауіпсіздік әкімшісі нүктені бекітеді. Файл ашылмайды, ЖСН мен баға бұл кестеде жоқ. Бекітілгенде жұмыс дерек сол нүктенің жол санына қайтады.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Уақыт</th><th>Нүкте</th><th>Орын</th><th>Хэш</th><th>Жол саны</th><th>RPO</th><th>Автор</th><th></th></tr></thead>
+            <tbody>${rows || "<tr><td colspan='8'>Кезек бос</td></tr>"}</tbody>
+          </table>
+        </div>
       </section>`
     );
   }
@@ -1787,74 +2112,89 @@
     enrollStream = null;
   }
 
-  const FACE_MATCH = 0.22;
+  const FACE_LIB = "vendor/face-api/face-api.js";
+  const FACE_MODELS = "vendor/face-api/model";
+  const FACE_MATCH_DISTANCE = 0.5;
+  const FACE_MIN_SCORE = 0.6;
+  const FACE_SAMPLES = 3;
+  let faceModelsTask = null;
 
-  function captureFace(video) {
-    const width = 320;
-    const height = Math.max(240, Math.round(width * (video.videoHeight / video.videoWidth)));
+  function prepareFaceModels() {
+    if (!faceModelsTask) {
+      faceModelsTask = new Promise((resolve, reject) => {
+        if (window.faceapi) {
+          resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = FACE_LIB;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("face-api"));
+        document.head.appendChild(script);
+      })
+        .then(() =>
+          Promise.all([
+            window.faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODELS),
+            window.faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODELS),
+            window.faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODELS),
+          ])
+        )
+        .then(() => ({
+          faceapi: window.faceapi,
+          detector: new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }),
+        }))
+        .catch((err) => {
+          faceModelsTask = null;
+          throw err;
+        });
+    }
+    return faceModelsTask;
+  }
+
+  function captureFrame(video) {
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    ctx.translate(width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, width, height);
-    return canvas.toDataURL("image/jpeg", 0.72);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    return canvas;
   }
 
-  function loadFaceImage(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("face"));
-      img.src = src;
-    });
-  }
-
-  function facePrint(img) {
-    const w = 32;
-    const h = 24;
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    ctx.drawImage(img, 0, 0, w, h);
-    const data = ctx.getImageData(0, 0, w, h).data;
-    const gray = new Float32Array(w * h);
-    for (let i = 0; i < gray.length; i++) {
-      const o = i * 4;
-      gray[i] = data[o] * 0.299 + data[o + 1] * 0.587 + data[o + 2] * 0.114;
+  async function describeFrame(source) {
+    const width = source?.videoWidth || source?.width;
+    const height = source?.videoHeight || source?.height;
+    if (!width || !height) return { sample: null, message: "Камера әлі қосылып жатыр." };
+    const { faceapi, detector } = await prepareFaceModels();
+    const found = await faceapi.detectAllFaces(source, detector).withFaceLandmarks().withFaceDescriptors();
+    if (found.length === 0) return { sample: null, message: "Кадрда бет жоқ. Камераға қараңыз." };
+    if (found.length > 1) return { sample: null, message: "Кадрда тек бір адам болуы керек." };
+    const { detection, descriptor } = found[0];
+    if (detection.score < FACE_MIN_SCORE) {
+      return { sample: null, message: "Бет анық көрінбейді. Камераға тура қарап, жарықты көбейтіңіз." };
     }
-    return gray;
+    return { sample: Array.from(descriptor, (value) => Math.round(value * 100000) / 100000), message: "" };
   }
 
-  function faceScore(a, b) {
-    let meanA = 0;
-    let meanB = 0;
+  function faceVector(raw) {
+    if (!Array.isArray(raw) || raw.length !== 128) return null;
+    return raw.every((v) => typeof v === "number" && Number.isFinite(v) && v >= -1 && v <= 1) ? raw : null;
+  }
+
+  function faceVectors(record) {
+    const list = Array.isArray(record?.vectors) ? record.vectors.map(faceVector) : [];
+    return list.length >= 2 && list.every(Boolean) ? list : [];
+  }
+
+  function faceDistance(a, b) {
+    let sum = 0;
     for (let i = 0; i < a.length; i++) {
-      meanA += a[i];
-      meanB += b[i];
+      const d = a[i] - b[i];
+      sum += d * d;
     }
-    meanA /= a.length;
-    meanB /= b.length;
-    let dot = 0;
-    let na = 0;
-    let nb = 0;
-    for (let i = 0; i < a.length; i++) {
-      const da = a[i] - meanA;
-      const db = b[i] - meanB;
-      dot += da * db;
-      na += da * da;
-      nb += db * db;
-    }
-    if (na < 1 || nb < 1) return 0;
-    return dot / Math.sqrt(na * nb);
+    return Math.sqrt(sum);
   }
 
-  async function faceMatches(shot, stored) {
-    if (!shot || !stored) return false;
-    const [live, saved] = await Promise.all([loadFaceImage(shot), loadFaceImage(stored)]);
-    return faceScore(facePrint(live), facePrint(saved)) >= FACE_MATCH;
+  function nearestFace(vectors, sample) {
+    return Math.min(...vectors.map((v) => faceDistance(v, sample)));
   }
 
   function stopFaceCamera() {
@@ -1894,6 +2234,7 @@
           }
           faceStream = stream;
           attachFaceCamera(stream);
+          prepareFaceModels().catch(() => {});
           const live = document.getElementById("face-hint");
           if (live && facePhase !== "scan") live.textContent = "Камера ашық. Үлгіге сай келмесе сессия ашылмайды.";
         })
@@ -1939,39 +2280,40 @@
     document.getElementById("reset-demo")?.addEventListener("click", resetDemo);
     document.getElementById("face-scan")?.addEventListener("click", () => {
       if (!pendingUser || facePhase === "scan") return;
-      const record = faceFor(pendingUser.id);
+      const vectors = faceVectors(faceFor(pendingUser.id));
       const video = document.getElementById("face-video");
-      if (!record?.image || !video?.videoWidth) {
+      if (!vectors.length || !video?.videoWidth) {
         flash = { type: "bad", text: "Камера әлі дайын емес. Бетті кадрға түсіріп, қайталаңыз." };
         render();
         return;
       }
-      const shot = captureFace(video);
-      const stored = record.image;
+      const shot = captureFrame(video);
       const who = pendingUser;
       facePhase = "scan";
       flash = null;
       render();
-      clearFaceTimer();
-      faceTimer = setTimeout(async () => {
-        faceTimer = null;
-        if (loginStep !== "face" || pendingUser !== who) return;
-        let matched = false;
+      (async () => {
+        let frame;
         try {
-          matched = await faceMatches(shot, stored);
+          frame = await describeFrame(shot);
         } catch {
-          matched = false;
+          frame = { sample: null, message: "Бет тану модулі жүктелмеді." };
         }
         if (loginStep !== "face" || pendingUser !== who) return;
-        if (!matched) {
-          log(who, "Face ID сәтсіз", "Үлгі сәйкес келмеді");
+        const sample = faceVector(frame.sample);
+        const best = sample ? nearestFace(vectors, sample) : null;
+        if (best === null || !(best < FACE_MATCH_DISTANCE)) {
+          log(who, "Face ID сәтсіз", best === null ? frame.message : `Қашықтық ${best.toFixed(2)}`);
           facePhase = "idle";
-          flash = { type: "bad", text: "Face ID сәйкес келмеді. Сессия ашылмады." };
+          flash = {
+            type: "bad",
+            text: best === null ? `${frame.message} Сессия ашылмады.` : "Face ID сәйкес келмеді. Сессия ашылмады.",
+          };
           render();
           return;
         }
-        finishLogin("Face ID расталды");
-      }, 900);
+        finishLogin(`Face ID расталды · қашықтық ${best.toFixed(2)}`);
+      })();
     });
     document.getElementById("face-code")?.addEventListener("click", () => {
       clearFaceTimer();
@@ -2107,6 +2449,32 @@
       flash = { type: "ok", text: `${name} тіркелді. Кіру: ${login}. Карта: ${card}. Face ID әлі жоқ.` };
       render();
     });
+    const fold = (text) =>
+      text
+        .toLocaleLowerCase("kk")
+        .replace(/[ұү]/g, "у")
+        .replace(/қ/g, "к")
+        .replace(/ғ/g, "г")
+        .replace(/ң/g, "н")
+        .replace(/ә/g, "а")
+        .replace(/ө/g, "о")
+        .replace(/і/g, "и")
+        .replace(/һ/g, "х")
+        .replace(/ё/g, "е");
+    const faceSelect = document.getElementById("face-user");
+    const facePeople = faceSelect
+      ? [...faceSelect.options].map((o) => ({ value: o.value, text: o.textContent, key: fold(o.textContent) }))
+      : [];
+    document.getElementById("face-find")?.addEventListener("input", (e) => {
+      const count = document.getElementById("face-find-count");
+      if (!faceSelect) return;
+      const words = fold(e.target.value).split(/\s+/).filter(Boolean);
+      const picked = faceSelect.value;
+      const shown = facePeople.filter((p) => words.every((word) => p.key.includes(word)));
+      faceSelect.replaceChildren(...shown.map((p) => new Option(p.text, p.value)));
+      if (shown.some((p) => p.value === picked)) faceSelect.value = picked;
+      if (count) count.textContent = shown.length ? `Табылды: ${shown.length}` : "Ешкім табылмады.";
+    });
     document.getElementById("face-enroll-cam")?.addEventListener("click", () => {
       if (session.role !== "registrar") return;
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -2129,14 +2497,18 @@
           const save = document.getElementById("face-enroll-save");
           if (save) save.disabled = false;
           const hint = document.getElementById("enroll-hint");
-          if (hint) hint.textContent = "Кадр дайын. Базаға сақтау оны faces кестесіне жазады.";
+          if (hint) hint.textContent = "Камера ашық. Тура қарап тұрыңыз. Сақтау 3 кадрдан вектор алады, фото сақталмайды.";
+          prepareFaceModels().catch(() => {
+            const live = document.getElementById("enroll-hint");
+            if (live) live.textContent = "Бет тану модулі жүктелмеді. Бетті жаңартып, қайталаңыз.";
+          });
         })
         .catch(() => {
           flash = { type: "bad", text: "Камера ашылмады. Рұқсат беріңіз." };
           render();
         });
     });
-    document.getElementById("face-enroll")?.addEventListener("submit", (e) => {
+    document.getElementById("face-enroll")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (session.role !== "registrar") {
         flash = { type: "bad", text: "Face ID үлгісін тек тіркеуші береді." };
@@ -2150,7 +2522,40 @@
         render();
         return;
       }
-      const image = captureFace(video);
+      const save = document.getElementById("face-enroll-save");
+      const hint = document.getElementById("enroll-hint");
+      const say = (text) => {
+        if (hint) hint.textContent = text;
+      };
+      if (save) save.disabled = true;
+      let vectors;
+      try {
+        const samples = [];
+        for (let index = 0; index < FACE_SAMPLES; index += 1) {
+          say(`Кадр ${index + 1}/${FACE_SAMPLES}…`);
+          const frame = await describeFrame(video);
+          const sample = faceVector(frame.sample);
+          if (!sample) throw new Error(frame.message || "Камера бетті көрмей тұр.");
+          samples.push(sample);
+          await new Promise((resolve) => window.setTimeout(resolve, 400));
+        }
+        const spread = Math.max(...samples.flatMap((a, i) => samples.slice(i + 1).map((b) => faceDistance(a, b))));
+        if (spread > FACE_MATCH_DISTANCE) {
+          throw new Error("Кадрлар әртүрлі шықты. Тура отырып, камераға қарап, қайта сақтаңыз.");
+        }
+        const twin = (db.faces || []).find(
+          (f) => f.userId !== user.id && faceVectors(f).length && samples.some((s) => nearestFace(faceVectors(f), s) < FACE_MATCH_DISTANCE)
+        );
+        if (twin) {
+          const owner = db.users.find((u) => u.id === twin.userId);
+          throw new Error(`Бұл бет ${owner?.name || "басқа адамға"} тіркелген. Екінші рет сақталмайды.`);
+        }
+        vectors = samples;
+      } catch (err) {
+        say(err?.message === "face-api" ? "Бет тану модулі жүктелмеді. Бетті жаңартып, қайталаңыз." : err?.message || "Сақталмады.");
+        if (save && enrollStream) save.disabled = false;
+        return;
+      }
       stopEnrollCamera();
       db.faces = (db.faces || []).filter((f) => f.userId !== user.id);
       db.faces.push({
@@ -2158,11 +2563,11 @@
         userId: user.id,
         at: Date.now(),
         by: session.name,
-        image,
+        vectors,
       });
-      log(session, "Face ID базаға сақталды", user.name);
+      log(session, "Face ID базаға сақталды", `${user.name} · ${vectors.length} вектор`);
       saveDb();
-      flash = { type: "ok", text: `${user.name} үшін Face ID faces кестесіне сақталды.` };
+      flash = { type: "ok", text: `${user.name} үшін ${vectors.length} вектор faces кестесіне сақталды. Фото сақталмады.` };
       render();
     });
     document.querySelectorAll("[data-face-drop]").forEach((btn) => {
@@ -2382,34 +2787,125 @@
         render();
       });
     });
-    document.getElementById("backup-make")?.addEventListener("click", () => {
-      if (session.role !== "sysadmin") return;
-      db.backup = db.backup || { copies: [], restores: [] };
-      const label = "көшірме-" + new Date().toLocaleString("kk-KZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      db.backup.copies.unshift({ id: "b" + Date.now(), at: Date.now(), label });
-      log(session, "Көшірме жасалды", label);
-      saveDb();
-      flash = { type: "ok", text: "Көшірме жасалды. Файл ашылмады." };
-      render();
-    });
-    document.getElementById("backup-restore")?.addEventListener("submit", (e) => {
+    document.getElementById("backup-make")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (session.role !== "sysadmin") return;
+      const data = new FormData(e.target);
+      const kind = String(data.get("kind") || "");
+      const place = String(data.get("place") || "");
+      if (!["log", "diff", "full"].includes(kind) || !["vlan", "offline"].includes(place)) return;
+      if (kind !== "full" && place === "offline") {
+        flash = { type: "bad", text: "Офлайн сейфке тек толық экспорт жазылады. Журнал мен дифференциал Backup VLAN-да қалады." };
+        render();
+        return;
+      }
+      try {
+        const copy = await writeCopy({
+          kind,
+          place,
+          label: `${kindLabel(kind)} · ${placeLabel(place)}`,
+        });
+        log(session, "Көшірме жасалды", `${copy.label}. Хэш ${copy.hash.slice(0, 16)}. Іші ашылмады.`);
+        saveDb();
+        const dirty = copyClean(copy) ? "" : " Оқиға белгісінен кейінгі дана таза емес.";
+        flash = { type: "ok", text: `Көшірме жасалды. Хэш ${copy.hash.slice(0, 16)}. Файл ашылмады.${dirty}` };
+      } catch (_) {
+        flash = { type: "bad", text: "Көшірме жасалмады. Шифрлау қолжетімсіз." };
+      }
+      render();
+    });
+    document.getElementById("backup-incident")?.addEventListener("click", () => {
+      if (session.role !== "sysadmin") return;
+      ensureBackupShape();
+      if (db.backup.incidentAt) {
+        db.backup.incidentAt = 0;
+        log(session, "Оқиға белгісі жабылды", "Каталог қайта ашық");
+        flash = { type: "ok", text: "Белгі жабылды." };
+      } else {
+        db.backup.incidentAt = Date.now();
+        log(session, "Оқиға белгісі қойылды", fmt(db.backup.incidentAt));
+        flash = { type: "warn", text: "Белгіден кейінгі көшірме таза емес. Ол нүктеден қайтару басталмайды." };
+      }
+      saveDb();
+      render();
+    });
+    document.getElementById("backup-drill")?.addEventListener("click", () => {
+      if (session.role !== "sysadmin") return;
+      if (!db.grades.length) {
+        flash = { type: "warn", text: "Жасыратын баға жолы жоқ." };
+        render();
+        return;
+      }
+      db.grades.pop();
+      log(session, "Жаттығу: баға жолы жасырылды", `Қалғаны ${db.grades.length}. Мәні ашылмады.`);
+      saveDb();
+      flash = { type: "warn", text: `Бір баға жолы жасырылды. Қазір ${db.grades.length} баға. Мәні бұл экранда жоқ.` };
+      render();
+    });
+    document.getElementById("backup-restore")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (session.role !== "sysadmin") return;
+      ensureBackupShape();
       const id = String(new FormData(e.target).get("copy") || "");
-      const copy = (db.backup?.copies || []).find((item) => item.id === id);
-      if (!copy) return;
+      const copy = usableCopies().find((item) => item.id === id);
+      if (!copy) {
+        flash = { type: "bad", text: "Нүкте таңдалмады. Ең жаңа көшірме өзі алынбайды." };
+        render();
+        return;
+      }
+      const opened = await openCopy(copy);
+      if (!opened.ok) {
+        log(session, "Қалпына келтіру тоқтатылды", opened.reason);
+        flash = { type: "bad", text: `Көшірме алынбады: ${opened.reason}.` };
+        render();
+        return;
+      }
+      if (!copyClean(copy)) {
+        log(session, "Қалпына келтіру тоқтатылды", "Оқиғадан кейінгі дана");
+        flash = { type: "bad", text: "Бұл дана оқиға белгісінен кейін. Таза нүкте деп саналмайды." };
+        render();
+        return;
+      }
+      if (copy.place === "offline" && cleanVlanExists()) {
+        log(session, "Қалпына келтіру тоқтатылды", "VLAN суреті тұр");
+        flash = { type: "bad", text: "Backup VLAN-да таза сурет бар. Офлайн сейф сурет бүлінсе ғана алынады." };
+        render();
+        return;
+      }
       db.backup.restores.unshift({
         id: "r" + Date.now(),
         copyId: copy.id,
         label: copy.label,
+        place: copy.place,
+        kind: copy.kind,
+        hash: copy.hash.slice(0, 16),
+        counts: copy.counts,
+        rpo: rpoText(copy),
         authorId: session.id,
         authorName: session.name,
         state: "wait",
         at: Date.now(),
       });
-      log(session, "Қалпына келтіру сұралды", copy.label);
+      log(session, "Қалпына келтіру сұралды", `${copy.label}. Хэш ${copy.hash.slice(0, 16)}`);
       saveDb();
-      flash = { type: "ok", text: "Сұрау кетті. Бекіту қауіпсіздік әкімшісінде." };
+      flash = { type: "ok", text: "Сұрау кетті. Бекіту қауіпсіздік әкімшісінде. Файл ашылмады." };
+      render();
+    });
+    document.getElementById("backup-check")?.addEventListener("click", async () => {
+      if (session.role !== "sysadmin") return;
+      const select = document.querySelector("#backup-restore select[name='copy']");
+      const id = String(select?.value || "");
+      const copy = usableCopies().find((item) => item.id === id);
+      if (!copy) {
+        flash = { type: "bad", text: "Алдымен нүктені таңдаңыз." };
+        render();
+        return;
+      }
+      const opened = await openCopy(copy);
+      log(session, opened.ok ? "Хэш сәйкес" : "Хэш сәйкес емес", copy.hash.slice(0, 16));
+      flash = opened.ok
+        ? { type: "ok", text: `Хэш сәйкес: ${copy.hash.slice(0, 16)}. Іші ашылмады. ${rpoText(copy)}.` }
+        : { type: "bad", text: `Хэш тексерілмеді: ${opened.reason}.` };
       render();
     });
     document.getElementById("backup-self")?.addEventListener("click", () => {
@@ -2423,22 +2919,41 @@
       render();
     });
     document.querySelectorAll("[data-restore]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         if (session.role !== "secadmin") return;
-        const item = (db.backup?.restores || []).find((row) => row.id === btn.dataset.restore);
+        ensureBackupShape();
+        const item = (db.backup.restores || []).find((row) => row.id === btn.dataset.restore);
         if (!item || item.state !== "wait") return;
         if (item.authorId === session.id) {
           flash = { type: "bad", text: "Жазған адам бекітпейді." };
           render();
           return;
         }
-        item.state = btn.dataset.state === "ok" ? "ok" : "no";
-        log(session, item.state === "ok" ? "Қалпына келтіру бекітілді" : "Қалпына келтіру қайтарылды", item.label);
+        if (btn.dataset.state !== "ok") {
+          item.state = "no";
+          log(session, "Қалпына келтіру қайтарылды", item.label);
+          saveDb();
+          flash = { type: "ok", text: "Сұрау қайтарылды. Жұмыс дерек өзгермеді." };
+          render();
+          return;
+        }
+        const copy = usableCopies().find((row) => row.id === item.copyId);
+        const opened = copy ? await openCopy(copy) : { ok: false, reason: "нүкте жоқ" };
+        if (!opened.ok || !copyClean(copy)) {
+          log(session, "Қалпына келтіру тоқтатылды", opened.ok ? "таза емес" : opened.reason);
+          flash = { type: "bad", text: opened.ok ? "Нүкте енді таза емес. Бекітілмеді." : `Бекітілмеді: ${opened.reason}.` };
+          render();
+          return;
+        }
+        applyBody(opened.body);
+        item.state = "ok";
+        log(session, "Қалпына келтіру бекітілді", `${item.label}. Жол: ${countLine(liveCounts())}`);
         saveDb();
-        flash = { type: "ok", text: item.state === "ok" ? "Бекітілді. Файл ашылмады." : "Сұрау қайтарылды." };
+        flash = { type: "ok", text: `Бекітілді. Жұмыс дерек қайтты: ${countLine(liveCounts())}. Файл ашылмады.` };
         render();
       });
     });
+    if (route().page === "backup") ensureOfflineSeed();
     document.getElementById("paper-form")?.addEventListener("submit", (e) => {
       e.preventDefault();
       if (session.role !== "registrar") return;

@@ -2113,6 +2113,44 @@ a.lab-card:hover .lab-go i { transform: translateX(4px); }
 .lab8 .arch-tool { border-top-color: #243056; }
 .lab8 #arch-panel ul { margin: 0.7rem 0 0; padding-left: 1.15rem; }
 .lab8 #arch-panel li { margin: 0.35rem 0; }
+.lab8 .flow-switch { display: flex; gap: 0.35rem; }
+.lab8 .flow-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.22rem 0.7rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6d655c;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lab8 .flow-btn.is-allow.is-on { background: #0d5c4b; border-color: #0d5c4b; color: #f6f2ea; }
+.lab8 .flow-btn.is-deny.is-on { background: #8a3b12; border-color: #8a3b12; color: #f6f2ea; }
+.lab8 .flow-design {
+  display: block;
+  margin-top: 0.35rem;
+  color: #6d655c;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.lab8 tr.is-off-design th,
+.lab8 tr.is-off-design td { background: rgba(138, 59, 18, 0.07); }
+.lab8 .flow-effect.is-risk { color: #8a3b12; font-weight: 700; }
+.lab8 .flow-effect.is-break { color: #8a5a12; font-weight: 700; }
+.flow-outcome {
+  margin: 0.15rem 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+}
+.flow-outcome.is-ok { border-color: rgba(13, 92, 75, 0.35); }
+.flow-outcome.is-warn {
+  border-color: rgba(138, 59, 18, 0.4);
+  background: rgba(138, 59, 18, 0.07);
+}
 
 .lab6-risks th:nth-child(4),
 .lab6-risks th:nth-child(5),

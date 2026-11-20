@@ -116,6 +116,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .side-nav a:hover,
 .side-nav a.is-on { background: rgba(13, 92, 75, 0.1); color: var(--teal); }
 
+.backup-open { margin: 0.95rem 0 0; }
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
@@ -1090,6 +1091,7 @@ textarea { min-height: 4.5rem; resize: vertical; }
 .place-card p { color: var(--muted); margin-bottom: 0.35rem; }
 .place-card .btn { margin-top: 0.45rem; }
 .stack { display: grid; gap: 1rem; }
+.table-scroll { overflow-x: auto; }
 
 @media (max-width: 860px) {
   .layout, .login-card, .grid-2, .stat-row, .form-grid, .place-grid { grid-template-columns: 1fr; }
